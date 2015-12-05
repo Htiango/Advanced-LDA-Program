@@ -5,6 +5,7 @@ package tabPages;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -123,6 +124,9 @@ public class ComPreprocess extends Composite{
      * the class that seg the words and rid off the stopwords
      */
     private SegWords segWords;
+    
+    public static Map<Integer, Map<String,String>> segDocMapMap = 
+			new HashMap<Integer, Map<String,String>>();
     
     /**
      * a text that shows the words number
@@ -481,6 +485,7 @@ public class ComPreprocess extends Composite{
 	private void doSegging(){
 		segWords = new SegWords();
 		segWords.segWords(xmlReader.docMapMap, xmlReader.docNum);
+		segDocMapMap = segWords.segDocMapMap;
 		fillSegInfo();
 		fillSegDetail();
 	}

@@ -11,7 +11,7 @@ public class ComLdaModeling extends Composite{
 		super(parent, style);
 		
 		TabFolder tabFolderModel = new TabFolder(this, SWT.NONE);
-		tabFolderModel.setBounds(5, 10, 670, 500);
+		tabFolderModel.setBounds(0, 0, 680, 515);
 		
 		TabItem tbtmModel1 = new TabItem(tabFolderModel, SWT.NONE);
 		tbtmModel1.setText("Model 1");
