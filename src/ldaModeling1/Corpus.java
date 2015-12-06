@@ -20,10 +20,10 @@ public class Corpus
     	{"问题内容","回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
 //    private static ArrayList<ArrayList <String>> list2;
 
-    public Corpus()
+    public Corpus(int wordsNum)
     {
         documentList = new LinkedList<int[]>();
-        vocabulary = new Vocabulary();
+        vocabulary = new Vocabulary(wordsNum);
     }
 
     public int[] addDocument(List<String> document)
@@ -67,9 +67,9 @@ public class Corpus
      * @return a corpus
      * @throws IOException
      */
-    public static Corpus loading(Map<Integer, Map<String,String>> segDocMapMap) 
+    public static Corpus loading(Map<Integer, Map<String,String>> segDocMapMap, int wordsNum) 
     {
-        Corpus corpus = new Corpus();
+        Corpus corpus = new Corpus(wordsNum);
         String segSentense;
 
         for (Map.Entry<Integer, Map<String,String>> entry : segDocMapMap.entrySet())

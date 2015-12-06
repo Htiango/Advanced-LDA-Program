@@ -128,6 +128,9 @@ public class ComPreprocess extends Composite{
     public static Map<Integer, Map<String,String>> segDocMapMap = 
 			new HashMap<Integer, Map<String,String>>();
     
+    public static Map<Integer, Map<String,String>> docMapMap = 
+			new HashMap<Integer, Map<String,String>>();
+    
     /**
      * a text that shows the words number
      */
@@ -162,6 +165,8 @@ public class ComPreprocess extends Composite{
      * the number of all unique words
      */
     private int uniqueWordsNum;
+    
+    public static int uniqueWordsNumClone;
     
     /**
      * the number of words repeat more than 2
@@ -469,7 +474,9 @@ public class ComPreprocess extends Composite{
 	 */
 	private void openFile() {
 		xmlReader = new XMLReader();
-		xmlReader.readXml(filePath[0]);				
+		xmlReader.readXml(filePath[0]);	
+		
+		docMapMap = xmlReader.docMapMap;
 				
 		// fill the doc titles in the table
 		fillDocInfo();
@@ -641,6 +648,7 @@ public class ComPreprocess extends Composite{
         	}
         }
         uniqueWordsNum = wordsSet.size();
+        uniqueWordsNumClone = uniqueWordsNum;
 	}
 	
 	/**

@@ -13,10 +13,10 @@ public class Vocabulary
     Map<String, Integer> word2idMap;
     String[] id2wordMap;
 
-    public Vocabulary()
+    public Vocabulary(int wordsNum)
     {
         word2idMap = new TreeMap<String, Integer>();
-        id2wordMap = new String[24000];
+        id2wordMap = new String[wordsNum];
     }
 
     public Integer getId(String word)
