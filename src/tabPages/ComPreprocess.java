@@ -49,9 +49,9 @@ public class ComPreprocess extends Composite{
 	private Text fileText;
 	
 	/**
-     * a text show the name of the file
+     * a text show the number of unique user
      */
-    private Text filenameText;    
+    private Text userNumText;    
     
     /**
      * a text show the num of docs in the file
@@ -166,7 +166,20 @@ public class ComPreprocess extends Composite{
      */
     private int uniqueWordsNum;
     
+    /**
+     * the number of all unique words, transfer to other class
+     */
     public static int uniqueWordsNumClone;
+    
+    /**
+     * the number of all unique users;
+     */
+    private int uniqueUserNum;
+    
+    /**
+     * the number of all unique users, transfer to other class
+     */
+    public static int uniqueUserNumClone;
     
     /**
      * the number of words repeat more than 2
@@ -200,6 +213,12 @@ public class ComPreprocess extends Composite{
      */
     private static String[] CHILDREN2 = 
     	{"问题内容","回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
+    
+    /**
+     * the child mode of the name of the user from the map
+     */
+    private static String[] CHILDREN3 = 
+    	{"回复人1姓名", "回复人2姓名","回复人3姓名","回复人4姓名", "回复人5姓名"};
 
     
   
@@ -219,10 +238,10 @@ public class ComPreprocess extends Composite{
         groupXmlInfo.setBounds(10, 70, 345, 90);
         
 
-        filenameText = new Text(groupXmlInfo, SWT.BORDER | SWT.READ_ONLY |SWT.H_SCROLL);
-        filenameText.setBounds(10, 10, 150, 22);
-        filenameText.setBackground(new Color(null,245,245,245));
-        filenameText.setText("文件名：");
+        userNumText = new Text(groupXmlInfo, SWT.BORDER | SWT.READ_ONLY);
+        userNumText.setBounds(10, 10, 150, 22);
+        userNumText.setBackground(new Color(null,245,245,245));
+        userNumText.setText("不同答者数：");
         
         docNumText = new Text(groupXmlInfo, SWT.BORDER | SWT.READ_ONLY);
         docNumText.setBounds(10, 40, 150, 22);
@@ -366,27 +385,27 @@ public class ComPreprocess extends Composite{
         groupSegInfo.setText("分词后的信息");
         groupSegInfo.setBounds(365, 70, 310, 90);
         
-        wordsNumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY |SWT.H_SCROLL);
+        wordsNumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY );
         wordsNumText.setBounds(10, 10, 135, 22);
         wordsNumText.setBackground(new Color(null,245,245,245));
         wordsNumText.setText("总词数：");
         
-        uniqueWordsNumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY |SWT.H_SCROLL);
+        uniqueWordsNumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY );
         uniqueWordsNumText.setBounds(165, 10, 135, 22);
         uniqueWordsNumText.setBackground(new Color(null,245,245,245));
         uniqueWordsNumText.setText("不同词数：");
         
-        repeat2NumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY |SWT.H_SCROLL);
+        repeat2NumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY );
         repeat2NumText.setBounds(10, 40, 90, 22);
         repeat2NumText.setBackground(new Color(null,245,245,245));
         repeat2NumText.setText(">2:");
         
-        repeat10NumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY |SWT.H_SCROLL);
+        repeat10NumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY );
         repeat10NumText.setBounds(110, 40, 90, 22);
         repeat10NumText.setBackground(new Color(null,245,245,245));
         repeat10NumText.setText(">10:");
 
-        repeat100NumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY |SWT.H_SCROLL);
+        repeat100NumText = new Text(groupSegInfo, SWT.BORDER | SWT.READ_ONLY );
         repeat100NumText.setBounds(210, 40, 90, 22);
         repeat100NumText.setBackground(new Color(null,245,245,245));
         repeat100NumText.setText(">100:");
@@ -542,7 +561,9 @@ public class ComPreprocess extends Composite{
 	 * fill in the groupDocInfo
 	 */
 	private void fillDocInfo(){
-		filenameText.setText("文件名：" +  filename);
+		getUniqueUserNum();
+		uniqueUserNumClone = uniqueUserNum;
+		userNumText.setText("不同答者数：" +  uniqueUserNum);
 		docNumText.setText("文档数：" + xmlReader.docNum);
 		ansNumText.setText("回答数：" + xmlReader.ansNum);
 		pageNumText.setText("总页数：" + ((xmlReader.docNum - 1) / ROWS_CNT + 1));
@@ -598,6 +619,25 @@ public class ComPreprocess extends Composite{
 				
 			}
 		});
+	}
+	
+	/**
+	 * get the unique user number 
+	 */
+	private void getUniqueUserNum(){
+		TreeSet<String> userSet = new TreeSet<String>();
+		wordsNum = 0;
+		uniqueUserNum = 0;
+		String temp;
+		
+		
+		for(Map.Entry<Integer, Map<String,String>> entry : xmlReader.docMapMap.entrySet()){
+			for (int i = 0; i < CHILDREN3.length; i++){
+				temp = entry.getValue().get(CHILDREN3[i]);
+                    userSet.add(temp);                        
+			}
+		}
+		uniqueUserNum = userSet.size();
 	}
 	
 	/**

@@ -174,8 +174,30 @@ public class ComModel1 extends Composite{
 								          SWTResourceManager.getColor(255, 0, 255),
 								          SWTResourceManager.getColor(255, 0, 127),
 								          SWTResourceManager.getColor(128, 128, 128)};
+
+    private final Color[] COLORTOPIC20 = {SWTResourceManager.getColor(102, 0, 0),
+										  SWTResourceManager.getColor(255, 0, 0),  
+										  SWTResourceManager.getColor(102, 51, 0), 
+										  SWTResourceManager.getColor(255, 128, 0),
+								          SWTResourceManager.getColor(255, 255, 0),
+								          SWTResourceManager.getColor(128, 255, 0),
+								          SWTResourceManager.getColor(0, 255, 0),
+								          SWTResourceManager.getColor(0, 102, 51),
+								          SWTResourceManager.getColor(0, 255, 128),
+								          SWTResourceManager.getColor(0, 102, 102), 
+								          SWTResourceManager.getColor(0, 255, 255),
+								          SWTResourceManager.getColor(0, 128, 255),
+								          SWTResourceManager.getColor(0, 0, 102), 
+								          SWTResourceManager.getColor(0, 0, 255),
+								          SWTResourceManager.getColor(127, 0, 255),
+								          SWTResourceManager.getColor(255, 204, 255), 
+								          SWTResourceManager.getColor(255, 0, 255),
+								          SWTResourceManager.getColor(102, 0, 102), 
+								          SWTResourceManager.getColor(255, 0, 127),
+								          SWTResourceManager.getColor(128, 128, 128)};
     
-    private final Color[][] COLORTOPIC = {COLORTOPIC5, COLORTOPIC10, COLORTOPIC15};
+    
+    private final Color[][] COLORTOPIC = {COLORTOPIC5, COLORTOPIC10, COLORTOPIC15, COLORTOPIC20};
     
     
 	
