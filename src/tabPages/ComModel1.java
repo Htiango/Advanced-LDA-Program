@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -290,11 +291,21 @@ public class ComModel1 extends Composite{
         buttonFrontDoc.setText("Front");
         buttonFrontDoc.setBounds(75, 8, 60, 20);
         buttonFrontDoc.setBackground(new Color(null,245,245,245));
+        buttonFrontDoc.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e){
+				goFrontPage();
+			}
+		});
         
         Button buttonNextDoc = new Button(groupDocTopic, SWT.BORDER);
         buttonNextDoc.setText("Next");
         buttonNextDoc.setBounds(130, 8, 60, 20);
         buttonNextDoc.setBackground(new Color(null,245,245,245));
+        buttonNextDoc.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e){
+				goNextPage();
+			}
+		});
         
         Label labelTurn2Doc = new Label(groupDocTopic, SWT.BORDER);
         labelTurn2Doc.setText("转到第");
@@ -306,12 +317,77 @@ public class ComModel1 extends Composite{
         Button buttonGoDoc = new Button(groupDocTopic, SWT.BORDER);
         buttonGoDoc.setBounds(260, 8, 45, 20);
         buttonGoDoc.setText("Go");
+        buttonGoDoc.addSelectionListener(new SelectionAdapter(){
+        	public void widgetSelected(SelectionEvent e){
+        		goPage();
+        	}
+        });
         
         textDocDetail = new StyledText(groupDocTopic, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
         textDocDetail.setBounds(5, 30, 292, 120);
         
 	}
 	
+	/**
+	 * update the doc index
+	 */
+	private void updateDocIndex(){
+		labelPresentDoc.setText("当前第 " + docIndex + " 条");
+	}
+	
+	/**
+	 * click the button and go to the front page and show in the text
+	 */
+	private void goFrontPage(){
+		if(docIndex - 1 < 1){
+			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
+			messagebox.setText("Error");
+			messagebox.setMessage("已是第一页，无法向前!");
+			messagebox.open();
+		}
+		else {
+			docIndex -= 1;
+			printDoc(docIndex);
+			updateDocIndex();
+		}		
+	}
+	
+	/**
+	 * click the button and go to the next page and show in the text
+	 */
+	private void goNextPage(){
+		int docLength = ComPreprocess.docMapMap.size();
+		if(docIndex + 1 > docLength){
+			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
+			messagebox.setText("Error");
+			messagebox.setMessage("已是最后一页，无法向后!");
+			messagebox.open();
+		}
+		else{
+			docIndex += 1;
+			printDoc(docIndex);
+			updateDocIndex();
+		}
+	}
+	
+	/**
+	 * click the 'go' button and go to the certain page and show in the text
+	 */
+	private void goPage(){
+		int docLength = ComPreprocess.docMapMap.size();
+		int goIndex = Integer.parseInt(textTurn2Doc.getText());
+		if (goIndex < 1 || goIndex > docLength){
+			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
+			messagebox.setText("Error");
+			messagebox.setMessage("无法转到此页!");
+			messagebox.open();
+		}
+		else{
+			docIndex = goIndex;
+			printDoc(docIndex);
+			updateDocIndex();
+		}
+	}
 	
 	/**
 	 * use gibbs sampling to get the lda result
@@ -374,7 +450,7 @@ public class ComModel1 extends Composite{
 	private void showLdaDoc(){
 		showTopicColor();
 		printDoc(docIndex);
-		changeWordColor();
+		
 	}
 	
 	/**
@@ -471,6 +547,7 @@ public class ComModel1 extends Composite{
 				textDocDetail.append("\n\n");
 			}
 		}
+		changeWordColor();
 	}
 	
 	/**

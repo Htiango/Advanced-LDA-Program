@@ -3,6 +3,8 @@ package tabPages;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TableTree;
+import org.eclipse.swt.custom.TableTreeItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -13,12 +15,15 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 
 import ldaModeling2.Corpus;
 import ldaModeling2.LdaGibbsSampler;
 import ldaModeling2.LdaUtil;
 
+@SuppressWarnings("deprecation")
 public class ComModel2 extends Composite{
 	
 	/**
@@ -82,6 +87,36 @@ public class ComModel2 extends Composite{
 	private LdaGibbsSampler ldaGibbsSampler;
 	
 	private final int LIMIT = 10;
+	
+	 /**
+     * tableTree类，用来显示lda的结果
+     */
+	private TableTree tableTreeLdaResult;
+    
+    /**
+     * tableTree中的table
+     */
+    private Table tableLdaResult;
+    
+    /**
+     * the column width of table
+     */
+    private final int[] COLUMNWIDTH = {90,70,140};
+    
+    /**
+     * tableTree 中的父类
+     */
+    private TableTreeItem parentLdaResult;
+    
+    /**
+     * tableTree 中的子类
+     */
+    private TableTreeItem childLdaResult1;
+    
+    /**
+     * tableTree 中的子类
+     */
+    private TableTreeItem childLdaResult2;
 	
 	
 	public ComModel2(Shell shell, Composite parent, int style){
@@ -155,8 +190,25 @@ public class ComModel2 extends Composite{
 		buttonDoLda.addSelectionListener(new SelectionAdapter(){
 			public void widgetSelected(SelectionEvent e){
 				doLda();
+				printTableLdaResult(topicExpertiseMap);
 			}
 		});
+		
+		tableTreeLdaResult = new TableTree(groupLDAResult, SWT.BORDER | SWT.FULL_SELECTION);
+        tableTreeLdaResult.setBounds(5, 10, 300, 200);
+        tableLdaResult = tableTreeLdaResult.getTable();     
+        tableLdaResult.setHeaderVisible(true);
+        tableLdaResult.setLinesVisible(true);       
+        String[] tableTreeLdaResultTitle = {"Topic & Expertise", "Words", "Probability"};
+        for (int i = 0; i < tableTreeLdaResultTitle.length ; i ++){
+            new TableColumn(tableLdaResult, SWT.LEFT).setText(tableTreeLdaResultTitle[i]);
+        }
+        TableColumn[] columns = tableLdaResult.getColumns();
+        int n = columns.length;
+        for (int k = 0; k < n; k++) {
+            columns[k].pack();  
+            columns[k].setWidth(COLUMNWIDTH[k]);                
+        }	
 		
 	}
 	
@@ -176,6 +228,37 @@ public class ComModel2 extends Composite{
 		topicExpertiseMap = LdaUtil.translate(phi, corpus.getVocabulary(), LIMIT);
 		LdaUtil.explain(topicExpertiseMap);
 		
+	}
+	
+	private void printTableLdaResult(Map<String, Double>[][] ldaResult){
+		for (int k = 0; k < topicNumber; k++){
+			parentLdaResult = new TableTreeItem(tableTreeLdaResult, SWT.BORDER);
+            parentLdaResult.setText(0, "topic " + k);
+            parentLdaResult.setText(1, "top words");
+            parentLdaResult.setText(2, "Words' Probability");
+            for (int e = 0; e < expertiseNumber; e++){
+            	childLdaResult1 = new TableTreeItem(parentLdaResult, SWT.BORDER);
+                childLdaResult1.setText(0, "  t " + k + ", e "+ e);
+                childLdaResult1.setText(1, "top words");
+                childLdaResult1.setText(2, "Words' Probability");
+                int topIndex = 0;
+                for (Map.Entry<String, Double> entry : ldaResult[k][e].entrySet()){
+                	childLdaResult2 = new TableTreeItem(childLdaResult1, SWT.BORDER);
+                    childLdaResult2.setText(0, "   Top " + (topIndex+1) + " word");
+                    childLdaResult2.setText(1, entry.getKey());
+                    childLdaResult2.setText(2, entry.getValue()+"");
+                    topIndex++;
+                }
+                childLdaResult1.setExpanded(false);
+            }
+            parentLdaResult.setExpanded(false);
+		}
+		TableColumn[] columns = tableLdaResult.getColumns();
+        int n = columns.length;
+        for (int k = 0; k < n; k++) {
+            columns[k].pack();  
+            columns[k].setWidth(COLUMNWIDTH[k]);                
+        }
 	}
 	
 	protected void checkSubclass() {  
