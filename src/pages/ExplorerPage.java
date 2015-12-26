@@ -68,7 +68,7 @@ public class ExplorerPage {
 		TabItem tbtmPrecision = new TabItem(tabFolderExplorer, SWT.NONE);
 		tbtmPrecision.setText("    Precision    ");
 		Composite compositePrecision = new ComPrecision(shell,tabFolderExplorer, SWT.NONE);
-		tbtmPrediction.setControl(compositePrecision);
+		tbtmPrecision.setControl(compositePrecision);
 
 	}
 }
