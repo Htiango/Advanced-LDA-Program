@@ -24,6 +24,16 @@ public class Vocabulary
         return getId(word, false);
     }
 
+    public boolean ifWordExist(String word){
+    	Integer id = word2idMap.get(word);
+    	if (id == null){
+    		return false;
+    	}
+    	else{
+    		return true;
+    	}
+    }
+    
     public String getWord(int id)
     {
         return id2wordMap[id];

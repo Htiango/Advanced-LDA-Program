@@ -7,6 +7,7 @@ import java.util.Map;
 import ldaModeling1.Corpus;
 import ldaModeling1.LdaGibbsSampler;
 import ldaModeling1.LdaUtil;
+import ldaModeling1.Vocabulary;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -33,6 +34,15 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 @SuppressWarnings("deprecation")
 public class ComModel1 extends Composite{
+	
+	
+	public static double[][] thetaAnswer;
+	
+	public static double[][] phiAnswer;
+	
+	public static Vocabulary vocabularyAnswer;
+	
+	public static int topicNumAnswer;
 	
 	private Corpus corpus;
 	
@@ -141,15 +151,15 @@ public class ComModel1 extends Composite{
      * the child mode of the segged map
      */
     private static String[] CHILDREN2 = 
-    	{"问题内容","回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
+    	{"回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
     
-    private final Color[] COLORTOPIC5= {SWTResourceManager.getColor(255, 0, 0), 
+    private static Color[] COLORTOPIC5= {SWTResourceManager.getColor(255, 0, 0), 
                                         SWTResourceManager.getColor(255, 255, 0),
                                         SWTResourceManager.getColor(0, 255, 0),
                                         SWTResourceManager.getColor(0, 255, 255),
                                         SWTResourceManager.getColor(0, 0, 255)};
     
-    private final Color[] COLORTOPIC10 = {SWTResourceManager.getColor(255, 0, 0),
+    private static Color[] COLORTOPIC10 = {SWTResourceManager.getColor(255, 0, 0),
     									  SWTResourceManager.getColor(255, 128, 0),
 								          SWTResourceManager.getColor(255, 255, 0),
 								          SWTResourceManager.getColor(128, 255, 0),
@@ -160,7 +170,7 @@ public class ComModel1 extends Composite{
 								          SWTResourceManager.getColor(127, 0, 255),
 								          SWTResourceManager.getColor(255, 0, 255)};
     
-    private final Color[] COLORTOPIC15 = {SWTResourceManager.getColor(102, 0, 0),
+    private static Color[] COLORTOPIC15 = {SWTResourceManager.getColor(102, 0, 0),
     									  SWTResourceManager.getColor(255, 0, 0),          
 										  SWTResourceManager.getColor(255, 128, 0),
 								          SWTResourceManager.getColor(255, 255, 0),
@@ -176,7 +186,7 @@ public class ComModel1 extends Composite{
 								          SWTResourceManager.getColor(255, 0, 127),
 								          SWTResourceManager.getColor(128, 128, 128)};
 
-    private final Color[] COLORTOPIC20 = {SWTResourceManager.getColor(102, 0, 0),
+    private static Color[] COLORTOPIC20 = {SWTResourceManager.getColor(102, 0, 0),
 										  SWTResourceManager.getColor(255, 0, 0),  
 										  SWTResourceManager.getColor(102, 51, 0), 
 										  SWTResourceManager.getColor(255, 128, 0),
@@ -198,7 +208,7 @@ public class ComModel1 extends Composite{
 								          SWTResourceManager.getColor(128, 128, 128)};
     
     
-    private final Color[][] COLORTOPIC = {COLORTOPIC5, COLORTOPIC10, COLORTOPIC15, COLORTOPIC20};
+    public static Color[][] COLORTOPIC = {COLORTOPIC5, COLORTOPIC10, COLORTOPIC15, COLORTOPIC20};
     
     
 	
@@ -404,6 +414,12 @@ public class ComModel1 extends Composite{
         topicMap = LdaUtil.translate(phi, corpus.getVocabulary(), topicNumber);                
         LdaUtil.explain(topicMap, wordsValueMapMap);       
         
+        thetaAnswer = ldaGibbsSampler.getTheta();
+        phiAnswer = ldaGibbsSampler.getPhi();
+        vocabularyAnswer = corpus.getVocabulary();
+        topicNumAnswer = topicNumber;
+        
+        removeTableTree();
         printTableLdaResult(wordsValueMapMap);		
 	}
 	
@@ -564,6 +580,13 @@ public class ComModel1 extends Composite{
 			labelTopicColor[i].setText(i + "");
 			startPixel += labelWidth;
 		}
+	}
+	
+	/**
+	 * remove the content in the table tree
+	 */
+	private void removeTableTree(){
+		tableLdaResult.removeAll();
 	}
 	
 	protected void checkSubclass() {  

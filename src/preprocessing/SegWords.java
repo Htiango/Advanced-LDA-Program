@@ -58,6 +58,24 @@ public class SegWords {
 		
 	}
 	
+	public static List<String> segQuestionWords(String questionContent){
+    	CWSTagger tag;
+    	String seg_questionContent = null;
+    	try{
+			tag = new CWSTagger("./models/seg.m");
+			
+			seg_questionContent = tag.tag(questionContent);
+		}catch (Exception e) {
+            e.printStackTrace();
+        }
+    	
+    	StopWords stopWords = new StopWords("./models/stopwords/StopWords.txt"); 
+    	
+    	String[] words = seg_questionContent.split("\\s+");		
+		List<String> result = stopWords.phraseDel(words);
+		
+		return result;   	
+    }
 	
 	public static String listToString(List<String> stringList){
          /**

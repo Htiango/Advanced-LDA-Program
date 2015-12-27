@@ -17,7 +17,7 @@ public class Corpus
     List<int[]> documentList;
     Vocabulary vocabulary;
     public static String[] CHILDREN = 
-    	{"问题内容","回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
+    	{"回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
 //    private static ArrayList<ArrayList <String>> list2;
 
     public Corpus(int wordsNum)
