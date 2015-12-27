@@ -3,6 +3,7 @@ package tabPages;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -32,24 +33,18 @@ public class ComPrediction extends Composite{
 	 */
 	private StyledText textAns3;
 	
+	private Combo comboModelType;
+	
 	private Text textUser1;
 	
 	private Text textUser2;
 	
 	private Text textUser3;
 	
-	private Group groupAns1;
+	private Group groupGetAnswer;
 	
-	private Group groupAns2;
-	
-	private Group groupAns3;
-	
-	private Group groupUser1;
-	
-	private Group groupUser2;
-	
-	private Group groupUser3;
-	
+	private final String[] MODELTYPE = {"Model 1", "Model 2"};
+		
 	public ComPrediction(Shell shell, Composite parent, int style){
 		super(parent, style);  
 		
@@ -60,11 +55,19 @@ public class ComPrediction extends Composite{
 		textQuestion = new Text(this, SWT.BORDER| SWT.V_SCROLL |  SWT.WRAP);
 		textQuestion.setBounds(12, 15, 655, 100);
 		
+		Label labelModelType = new Label(this, SWT.BORDER);
+		labelModelType.setText("请选择 Model 类型：");
+		labelModelType.setBounds(350, 125, 120, 20);
+		
+		comboModelType = new Combo(this, SWT.READ_ONLY);
+		comboModelType.setBounds(470, 125, 80, 20);
+		comboModelType.setItems(MODELTYPE);
+		
 		Button buttonComfirm = new Button(this, SWT.BORDER);
 		buttonComfirm.setText("确认");
 		buttonComfirm.setBounds(580, 120, 90, 32);
 		
-		Group groupGetAnswer = new Group(this, SWT.BORDER);
+		groupGetAnswer = new Group(this, SWT.BORDER);
 		groupGetAnswer.setText("显示预测答案");
 		groupGetAnswer.setBounds(10, 150, 420, 360);
 				
@@ -72,48 +75,48 @@ public class ComPrediction extends Composite{
 		groupGetUser.setText("显示推荐专家");
 		groupGetUser.setBounds(440, 150, 230, 250);
 		
-		groupAns1 = new Group(groupGetAnswer, SWT.NONE);
+		Group groupAns1 = new Group(groupGetAnswer, SWT.NONE);
 		groupAns1.setText("推荐答案1");
-		groupAns1.setBounds(5 , 5, 405, 110);
+		groupAns1.setBounds(5 , 5, 405, 105);
 
-		groupAns2 = new Group(groupGetAnswer, SWT.NONE);
+		Group groupAns2 = new Group(groupGetAnswer, SWT.NONE);
 		groupAns2.setText("推荐答案2");
-		groupAns2.setBounds(5 , 115, 405, 110);
+		groupAns2.setBounds(5 , 110, 405, 105);
 		
-		groupAns3 = new Group(groupGetAnswer, SWT.NONE);
+		Group groupAns3 = new Group(groupGetAnswer, SWT.NONE);
 		groupAns3.setText("推荐答案3");
-		groupAns3.setBounds(5 , 225, 405, 110);
+		groupAns3.setBounds(5 , 215, 405, 105);
 
 		textAns1 = new StyledText(groupAns1, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
-		textAns1.setBounds(0, 0 , 310, 75);
+		textAns1.setBounds(0, 0 , 310, 85);
 		
 		Label labelAns1 = new Label(groupAns1, SWT.BORDER);
 		labelAns1.setText("答案匹配率");
 		labelAns1.setBounds(320, 10, 70, 20);
 		
 		textAns2 = new StyledText(groupAns2, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
-		textAns2.setBounds(0, 0 , 310, 75);
+		textAns2.setBounds(0, 0 , 310, 85);
 		
 		Label labelAns2 = new Label(groupAns2, SWT.BORDER);
 		labelAns2.setText("答案匹配率");
 		labelAns2.setBounds(320, 10, 70, 20);
 		
 		textAns3 = new StyledText(groupAns3, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
-		textAns3.setBounds(0, 0 , 310, 75);
+		textAns3.setBounds(0, 0 , 310, 85);
 		
 		Label labelAns3 = new Label(groupAns3, SWT.BORDER);
 		labelAns3.setText("答案匹配率");
 		labelAns3.setBounds(320, 10, 70, 20);
 		
-		groupUser1 = new Group(groupGetUser, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		Group groupUser1 = new Group(groupGetUser, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
 		groupUser1.setBounds(5,5, 215, 70);
 		groupUser1.setText("推荐专家1");
 
-		groupUser2 = new Group(groupGetUser, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		Group groupUser2 = new Group(groupGetUser, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
 		groupUser2.setBounds(5,80, 215, 70);
 		groupUser2.setText("推荐专家2");		
 		
-		groupUser3 = new Group(groupGetUser, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		Group groupUser3 = new Group(groupGetUser, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
 		groupUser3.setBounds(5,155, 215, 70);
 		groupUser3.setText("推荐专家3");
 
