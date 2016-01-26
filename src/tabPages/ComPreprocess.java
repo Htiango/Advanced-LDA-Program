@@ -132,6 +132,21 @@ public class ComPreprocess extends Composite{
 			new HashMap<Integer, Map<String,String>>();
     
     /**
+     * the number of the Experts passed to the tabPage ComPrecision
+     */
+    public static int numExperts;
+    
+    /**
+     * the number of the question passed to the tabPage ComPrecision
+     */
+    public static int numQuestion;
+    
+    /**
+     * the number of the answers passed to the tabPage ComPrecision
+     */
+    public static int numAnswer;
+    
+    /**
      * a text that shows the words number
      */
     private Text wordsNumText;
@@ -567,6 +582,10 @@ public class ComPreprocess extends Composite{
 		docNumText.setText("文档数：" + xmlReader.docNum);
 		ansNumText.setText("回答数：" + xmlReader.ansNum);
 		pageNumText.setText("总页数：" + ((xmlReader.docNum - 1) / ROWS_CNT + 1));
+		
+		numExperts = uniqueUserNum;
+		numQuestion = xmlReader.docNum;
+		numAnswer = xmlReader.ansNum;
 	}
 	
 	/**

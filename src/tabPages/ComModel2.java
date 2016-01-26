@@ -195,7 +195,7 @@ public class ComModel2 extends Composite{
 		});
 		
 		tableTreeLdaResult = new TableTree(groupLDAResult, SWT.BORDER | SWT.FULL_SELECTION);
-        tableTreeLdaResult.setBounds(5, 10, 300, 200);
+        tableTreeLdaResult.setBounds(5, 10, 300, 390);
         tableLdaResult = tableTreeLdaResult.getTable();     
         tableLdaResult.setHeaderVisible(true);
         tableLdaResult.setLinesVisible(true);       
