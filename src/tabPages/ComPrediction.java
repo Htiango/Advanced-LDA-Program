@@ -313,11 +313,11 @@ public class ComPrediction extends Composite{
 		showTopicColor();
 		changeWordColor(textQuestion, SegWords.listToString(segQuestionWords));
 		printAnswer(1, ComPreprocess.docMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), 
-				ComPreprocess.segDocMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), best1AnsProb / sum);
+				ComPreprocess.segDocMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), best1AnsProb / sum, true);
 		printAnswer(2, ComPreprocess.docMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), 
-				ComPreprocess.segDocMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), best2AnsProb / sum);
+				ComPreprocess.segDocMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), best2AnsProb / sum, true);
 		printAnswer(3, ComPreprocess.docMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), 
-				ComPreprocess.segDocMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), best3AnsProb / sum);
+				ComPreprocess.segDocMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), best3AnsProb / sum, true);
 	}
 	
 	private void showTopicColor(){
@@ -334,22 +334,28 @@ public class ComPrediction extends Composite{
 		}
 	}
 	
-	private void printAnswer(int index, String content,  String segContent, double prob){
+	private void printAnswer(int index, String content,  String segContent, double prob, boolean ifShowColor){
 //		String content = ComPreprocess.docMapMap.get(bestAnsInteger).get(CHILDREN[bestAnsI]);
 		if (index == 1){
 			textAns1.setText(content);
 			labelAns1Prob.setText(prob + "");
-			changeWordColor(textAns1, segContent);
+			if(ifShowColor == true){
+				changeWordColor(textAns1, segContent);
+			}
 		}
 		else if (index == 2){
 			textAns2.setText(content);
 			labelAns2Prob.setText(prob + "");
-			changeWordColor(textAns2,  segContent);
+			if(ifShowColor == true){
+				changeWordColor(textAns2, segContent);
+			}
 		}
 		else{
 			textAns3.setText(content);
 			labelAns3Prob.setText(prob + "");
-			changeWordColor(textAns3, segContent);
+			if(ifShowColor == true){
+				changeWordColor(textAns3, segContent);
+			}
 		}
 		System.out.println(prob);
 	}
@@ -357,7 +363,7 @@ public class ComPrediction extends Composite{
 	/**
 	 * get all the segged words from the previous Map
 	 * @param docIndex
-	 * @return
+	 * @return 
 	 */
 	private ArrayList<String> getWords(String segSentense){
 		ArrayList<String> words = new ArrayList<String>();
@@ -413,7 +419,7 @@ public class ComPrediction extends Composite{
 	/**
 	 * get the most possible topic of a word
 	 * @param word
-	 * @return
+	 * @return topic index
 	 */
 	private int getTopicIndex(String word){
 		int topicIndex = 0;		
@@ -434,6 +440,126 @@ public class ComPrediction extends Composite{
 	 * get the top 3 best answers and top 3 best user2 for Model2
 	 */
 	private void getResultModel2(){
+		String questionContent = textQuestion.getText();
+		List<String> segQuestionWords;
+		segQuestionWords = SegWords.segQuestionWords(questionContent);
+		getAnsModel2(segQuestionWords);
+		getExpertModel2(segQuestionWords);
+	}
+	
+	/**
+	 * get and print the top 3 best answers for model2
+	 * @param segQuestionWords
+	 */
+	private void getAnsModel2(List<String> segQuestionWords){
+		int best1AnsInteger = 0, best2AnsInteger = 0, best3AnsInteger = 0;
+		int best1AnsI = 0, best2AnsI = 0 , best3AnsI = 0;
+		double best1AnsProb = 0.0, best2AnsProb = 0.0, best3AnsProb = 0.0;
+		int wordID;
+		double scoreProduct, scoreSum, scorePhiThetaProduct, scorePhiSum;
+		int m = 0;
+		int k;
+		int x;
+		int i;
+		int w;
+		String word;
+		double sum = 0.0;
+		for(Map.Entry<Integer, Map<String, String>> entry : ComPreprocess.segDocMapMap.entrySet()){
+			for( i = 0; i < CHILDREN.length; i++){
+				
+				String segSentense = entry.getValue().get(CHILDREN[i]);
+				
+				if (segSentense.length() != 0){
+					scoreProduct = 0.0;
+					
+					for (w =0; w < segQuestionWords.size(); w++){
+						word = segQuestionWords.get(w);
+						if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+							continue;
+						}
+						wordID = ComModel2.vocabularyAnswer.getId(word);
+						
+						scoreSum = 0.0;
+						
+						for (k = 0; k < ComModel2.topicNumAnswer; k++){
+							
+							scorePhiThetaProduct = 0.0;
+							
+							scorePhiSum = 0.0;
+							for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+								scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+							}
+							
+							if (scorePhiThetaProduct == 0.0 || scorePhiSum == 0.0){
+								scorePhiThetaProduct = scorePhiSum;
+							}
+							else{
+								scorePhiThetaProduct *= scorePhiSum;
+							}
+							
+							scoreSum +=  scorePhiThetaProduct;							
+						}
+						if (scoreProduct == 0.0 || scoreSum == 0.0){
+							scoreProduct = scoreSum;
+						}
+						else{
+							scoreProduct *= scoreSum;
+						}
+					}
+					sum += scoreProduct;
+					
+					if(scoreProduct > best1AnsProb){
+						best2AnsProb = best1AnsProb;
+						best2AnsInteger = best1AnsInteger;
+						best2AnsI = best1AnsI;
+						
+						best3AnsProb = best2AnsProb;
+						best3AnsInteger = best2AnsInteger;
+						best3AnsI = best2AnsI;
+						
+						best1AnsProb = scoreProduct;
+						best1AnsInteger = entry.getKey();
+						best1AnsI = i;
+					}
+					
+					else if(scoreProduct > best2AnsProb){
+						
+						best3AnsProb = best2AnsProb;
+						best3AnsInteger = best2AnsInteger;
+						best3AnsI = best2AnsI;
+						
+						best2AnsProb = scoreProduct;
+						best2AnsInteger = entry.getKey();
+						best2AnsI = i;
+					}
+					
+					else if(scoreProduct > best3AnsProb){
+						best3AnsProb = scoreProduct;
+						best3AnsInteger = entry.getKey();
+						best3AnsI = i;
+					}					
+					m += 1;
+				}
+			}
+		}
+		System.out.println("总文档数：" + m);
+		System.out.println("总概率：" + sum);
+//		showTopicColor();
+//		changeWordColor(textQuestion, SegWords.listToString(segQuestionWords));
+		printAnswer(1, ComPreprocess.docMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), 
+				ComPreprocess.segDocMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), best1AnsProb / sum, false);
+		printAnswer(2, ComPreprocess.docMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), 
+				ComPreprocess.segDocMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), best2AnsProb / sum, false);
+		printAnswer(3, ComPreprocess.docMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), 
+				ComPreprocess.segDocMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), best3AnsProb / sum, false);
+	}
+	
+	
+	/**
+	 * get and print the top 3 best experts for model2
+	 * @param segQuestionWords
+	 */
+	private void getExpertModel2(List<String> segQuestionWords){
 		
 	}
 	

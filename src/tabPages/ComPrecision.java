@@ -57,6 +57,14 @@ public class ComPrecision extends Composite{
     
     private Combo comboModelType;
     
+    private Text textPredictAns;
+    
+    private Text textPredictExpert;
+    
+    private Text textOriginalAns;
+    
+    private Text textOriginalExpert;
+    
     /**
      * the child node of the xml file 
      */
@@ -131,6 +139,7 @@ public class ComPrecision extends Composite{
         });
         
         textQuestionDetail = new Text(groupPresentQuestion, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+        textQuestionDetail.setBackground(new Color(null,225,225,225));
         textQuestionDetail.setBounds(5, 30, 315, 75);
 
 		
@@ -166,9 +175,55 @@ public class ComPrecision extends Composite{
 		comboModelType.setBounds(470, 100, 80, 20);
 		comboModelType.setItems(MODELTYPE);
 
+		Group groupAnswer = new Group(this, SWT.BORDER);
+		groupAnswer.setText("答案相关");
+		groupAnswer.setBounds(10,170,660,230);
+		
+		Group groupPredict = new Group(groupAnswer, SWT.BORDER);
+		groupPredict.setText("匹配内容");
+		groupPredict.setBounds(5, 5, 320, 205);
+		
+		Group groupPredictAns = new Group(groupPredict, SWT.BORDER);
+		groupPredictAns.setText("匹配答案");
+		groupPredictAns.setBounds(5, 5, 308, 120);
+		
+		textPredictAns = new Text(groupPredictAns, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		textPredictAns.setBounds(5, 3, 295, 95);
+		textPredictAns.setBackground(new Color(null,230,230,230));
+		
+		Group groupPredictExpert = new Group(groupPredict, SWT.BORDER);
+		groupPredictExpert.setText("匹配专家");
+		groupPredictExpert.setBounds(5, 125, 308, 60);
+		
+		textPredictExpert = new Text(groupPredictExpert, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		textPredictExpert.setBounds(5, 3, 295, 35);
+		textPredictExpert.setBackground(new Color(null,230,230,230));
+		
+		Group groupOriginal = new Group(groupAnswer, SWT.BORDER);
+		groupOriginal.setText("原有内容");
+		groupOriginal.setBounds(330, 5, 320, 205);
+		
+		Group groupOriginalAns = new Group(groupOriginal, SWT.BORDER);
+		groupOriginalAns.setText("采纳答案");
+		groupOriginalAns.setBounds(5, 5, 308, 120);
+		
+		textOriginalAns = new Text(groupOriginalAns, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		textOriginalAns.setBounds(5, 3, 295, 95);
+		textOriginalAns.setBackground(new Color(null,230,230,230));
+		
+		Group groupOriginalExpert = new Group(groupOriginal, SWT.BORDER);
+		groupOriginalExpert.setText("采纳专家");
+		groupOriginalExpert.setBounds(5, 125, 308, 60);
+		
+		textOriginalExpert = new Text(groupOriginalExpert, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		textOriginalExpert.setBounds(5, 3, 295, 35);
+		textOriginalExpert.setBackground(new Color(null,230,230,230));
+		
 		Button buttonComfirmModel = new Button(groupDocQuestion, SWT.BORDER);
 		buttonComfirmModel.setText("确认");
 		buttonComfirmModel.setBounds(560, 95, 90, 32);
+		
+		
 	}
 	
 	

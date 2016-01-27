@@ -28,6 +28,16 @@ public class Vocabulary {
         return id2wordMap[id];
     }
 
+    public boolean ifWordExist(String word){
+    	Integer id = word2idMap.get(word);
+    	if (id == null){
+    		return false;
+    	}
+    	else{
+    		return true;
+    	}
+    }
+    
     public Integer getId(String word, boolean create)
     {
         Integer id = word2idMap.get(word);
@@ -45,6 +55,7 @@ public class Vocabulary {
 
         return id;
     }
+    
 
     private void resize(int n)
     {

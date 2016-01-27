@@ -19,12 +19,28 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 
+import ldaModeling2.Vocabulary;
 import ldaModeling2.Corpus;
 import ldaModeling2.LdaGibbsSampler;
 import ldaModeling2.LdaUtil;
+import ldaModeling2.User;
 
 @SuppressWarnings("deprecation")
 public class ComModel2 extends Composite{
+	
+	public static double[][] thetaAnswer;
+	
+	public static double[][][] phiAnswer;
+	
+	public static double[][] psiAnswer;
+	
+	public static Vocabulary vocabularyAnswer;
+	
+	public static int topicNumAnswer;
+	
+	public static User userAnswer;
+	
+	public static int expertiseNumAnswer; 
 	
 	/**
 	 * choose the number of the topic 
@@ -227,6 +243,15 @@ public class ComModel2 extends Composite{
 		phi = ldaGibbsSampler.getPhi();
 		topicExpertiseMap = LdaUtil.translate(phi, corpus.getVocabulary(), LIMIT);
 		LdaUtil.explain(topicExpertiseMap);
+		
+		
+		thetaAnswer = ldaGibbsSampler.getTheta();
+		phiAnswer = phi;
+		psiAnswer = ldaGibbsSampler.getPsi();
+		topicNumAnswer = topicNumber;
+		expertiseNumAnswer = expertiseNumber;
+		vocabularyAnswer = corpus.getVocabulary();
+		userAnswer = corpus.getUser();
 		
 	}
 	
