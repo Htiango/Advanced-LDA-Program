@@ -79,6 +79,12 @@ public class ComPrediction extends Composite{
      */
     private static String[] CHILDREN = 
     	{"回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
+    
+//    /**
+//     * the child node of the xml file 
+//     */
+//    private static String[] CHILDREN2 = 
+//    	{"回复人1姓名", "回复人2姓名", "回复人3姓名", "回复人4姓名", "回复人5姓名"};
 		
 	public ComPrediction(Shell shell, Composite parent, int style){
 		super(parent, style);  
@@ -275,13 +281,14 @@ public class ComPrediction extends Composite{
 					sum += scoreProduct;
 					
 					if(scoreProduct > best1AnsProb){
-						best2AnsProb = best1AnsProb;
-						best2AnsInteger = best1AnsInteger;
-						best2AnsI = best1AnsI;
 						
 						best3AnsProb = best2AnsProb;
 						best3AnsInteger = best2AnsInteger;
 						best3AnsI = best2AnsI;
+						
+						best2AnsProb = best1AnsProb;
+						best2AnsInteger = best1AnsInteger;
+						best2AnsI = best1AnsI;
 						
 						best1AnsProb = scoreProduct;
 						best1AnsInteger = entry.getKey();
@@ -334,6 +341,39 @@ public class ComPrediction extends Composite{
 		}
 	}
 	
+	/**
+	 * print the recommended expert
+	 * @param index
+	 * @param expert
+	 * @param prob
+	 */
+	private void printExpert(int index, String expert, double prob){
+		if (index == 1){
+			textUser1.setText(expert);
+			labelUser1Prob.setText(prob + "");
+		}
+		else if (index == 2){
+			textUser2.setText(expert);
+			labelUser2Prob.setText(prob + "");
+
+		}	
+		else{
+			textUser3.setText(expert);
+			labelUser3Prob.setText(prob + "");
+		}
+		
+		System.out.println(prob);
+		
+	}
+	
+	/**
+	 * print the recommended answer, and show different color based on the topics in model1.
+	 * @param index
+	 * @param content
+	 * @param segContent
+	 * @param prob
+	 * @param ifShowColor
+	 */
 	private void printAnswer(int index, String content,  String segContent, double prob, boolean ifShowColor){
 //		String content = ComPreprocess.docMapMap.get(bestAnsInteger).get(CHILDREN[bestAnsI]);
 		if (index == 1){
@@ -489,13 +529,14 @@ public class ComPrediction extends Composite{
 							for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
 								scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
 							}
+							scorePhiThetaProduct = scorePhiSum * ComModel2.thetaAnswer[m][k];
 							
-							if (scorePhiThetaProduct == 0.0 || scorePhiSum == 0.0){
-								scorePhiThetaProduct = scorePhiSum;
-							}
-							else{
-								scorePhiThetaProduct *= scorePhiSum;
-							}
+//							if (scorePhiThetaProduct == 0.0 || scorePhiSum == 0.0){
+//								scorePhiThetaProduct = scorePhiSum;
+//							}
+//							else{
+//								scorePhiThetaProduct *= scorePhiSum;
+//							}
 							
 							scoreSum +=  scorePhiThetaProduct;							
 						}
@@ -509,13 +550,14 @@ public class ComPrediction extends Composite{
 					sum += scoreProduct;
 					
 					if(scoreProduct > best1AnsProb){
-						best2AnsProb = best1AnsProb;
-						best2AnsInteger = best1AnsInteger;
-						best2AnsI = best1AnsI;
-						
+												
 						best3AnsProb = best2AnsProb;
 						best3AnsInteger = best2AnsInteger;
 						best3AnsI = best2AnsI;
+						
+						best2AnsProb = best1AnsProb;
+						best2AnsInteger = best1AnsInteger;
+						best2AnsI = best1AnsI;
 						
 						best1AnsProb = scoreProduct;
 						best1AnsInteger = entry.getKey();
@@ -543,7 +585,7 @@ public class ComPrediction extends Composite{
 			}
 		}
 		System.out.println("总文档数：" + m);
-		System.out.println("总概率：" + sum);
+		System.out.println("【推荐答案】总概率：" + sum);
 //		showTopicColor();
 //		changeWordColor(textQuestion, SegWords.listToString(segQuestionWords));
 		printAnswer(1, ComPreprocess.docMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), 
@@ -560,6 +602,101 @@ public class ComPrediction extends Composite{
 	 * @param segQuestionWords
 	 */
 	private void getExpertModel2(List<String> segQuestionWords){
+
+		String best1ExpertName = "", best2ExpertName = "", best3ExpertName = "";		
+		double best1ExpertProb = 0.0, best2ExpertProb = 0.0, best3ExpertProb = 0.0;
+		
+		int wordID;
+		double scoreProduct, scoreSum, scorePhiPsiProduct, scorePhiSum;
+//		int m = 0;
+		int k;
+		int x;
+		int i;
+		int w;
+		String word;
+		double sum = 0.0;
+//		int mapIndex = 0;
+		int u = 0;
+		
+//		Map<Integer, Map<String, String>> docMapMap =  ComPreprocess.docMapMap;
+//		Map<Integer, Map<String, String>> segDocMapMap =  ComPreprocess.segDocMapMap;
+//
+		
+//		for(Map.Entry<Integer, Map<Integer, Integer>> entry : ComModel2.userAnswer.getUser2DocAnsMapMap(docMapMap).entrySet()){
+//					
+//		}
+		
+		for(i = 0 ; i < ComModel2.userAnswer.size(); i++){
+			
+			scoreProduct = 0.0;
+			
+			for (w =0; w < segQuestionWords.size(); w++){
+				
+				word = segQuestionWords.get(w);
+				if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+					continue;
+				}
+				wordID = ComModel2.vocabularyAnswer.getId(word);
+				
+				scoreSum = 0.0;
+				
+				for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+					
+					scorePhiPsiProduct = 0.0;
+					
+					scorePhiSum = 0.0;
+					
+					for(k = 0; k < ComModel2.topicNumAnswer; k ++){
+						scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+					}
+					
+					scorePhiPsiProduct = scorePhiSum * ComModel2.psiAnswer[u][x];
+					
+					scoreSum +=  scorePhiPsiProduct;
+					
+					
+				}
+				if (scoreProduct == 0.0 || scoreSum == 0.0){
+					scoreProduct = scoreSum;
+				}
+				else{
+					scoreProduct *= scoreSum;
+				}
+							
+			}			
+			sum += scoreProduct;
+			
+			if(scoreProduct > best1ExpertProb){
+				best3ExpertProb = best2ExpertProb;
+				best3ExpertName = best2ExpertName;
+				
+				best2ExpertProb = best1ExpertProb;
+				best2ExpertName = best1ExpertName;
+					
+				best1ExpertProb = scoreProduct;
+				best1ExpertName = ComModel2.userAnswer.getUser(i);
+			}
+			
+			else if(scoreProduct > best2ExpertProb){
+				
+				best3ExpertProb = best2ExpertProb;
+				best3ExpertName = best2ExpertName;
+				
+				best2ExpertProb = scoreProduct;
+				best2ExpertName = ComModel2.userAnswer.getUser(i);
+			}
+			
+			else if(scoreProduct > best3ExpertProb){
+				best3ExpertProb = scoreProduct;
+				best3ExpertName = ComModel2.userAnswer.getUser(i);
+			}	
+			u += 1;
+		}
+		
+		System.out.println("【推荐用户】总概率：" + sum);
+		printExpert(1, best1ExpertName, best1ExpertProb / sum);
+		printExpert(2, best2ExpertName, best2ExpertProb / sum);
+		printExpert(3, best3ExpertName, best3ExpertProb / sum);
 		
 	}
 	

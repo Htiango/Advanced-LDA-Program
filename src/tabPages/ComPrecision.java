@@ -1,5 +1,7 @@
 package tabPages;
 
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -65,22 +67,32 @@ public class ComPrecision extends Composite{
     
     private Text textOriginalExpert;
     
-    /**
-     * the child node of the xml file 
-     */
-    private static String[] CHILDREN = 
-    	{"问题标题","问题内容","提问者用户名","提问者性别","提问者年龄","提问时间",
-    	"回复人1姓名", "回复人1职称", "回复人1分析",  "回复人1回复时间",
-    	"回复人2姓名", "回复人2职称", "回复人2分析",  "回复人2回复时间",
-    	"回复人3姓名", "回复人3职称", "回复人3分析",  "回复人3回复时间",
-    	"回复人4姓名", "回复人4职称", "回复人4分析",  "回复人4回复时间",
-    	"回复人5姓名", "回复人5职称", "回复人5分析",  "回复人5回复时间"};
+//    /**
+//     * the child node of the xml file 
+//     */
+//    private static String[] CHILDREN = 
+//    	{"问题标题","问题内容","提问者用户名","提问者性别","提问者年龄","提问时间",
+//    	"回复人1姓名", "回复人1职称", "回复人1分析",  "回复人1回复时间",
+//    	"回复人2姓名", "回复人2职称", "回复人2分析",  "回复人2回复时间",
+//    	"回复人3姓名", "回复人3职称", "回复人3分析",  "回复人3回复时间",
+//    	"回复人4姓名", "回复人4职称", "回复人4分析",  "回复人4回复时间",
+//    	"回复人5姓名", "回复人5职称", "回复人5分析",  "回复人5回复时间"};
     
     /**
-     * the child mode of the segged map
+     * the child mode of the map
+     * "回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"
      */
     private static String[] CHILDREN2 = 
     	{"回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
+    
+    
+    /**
+     * the child mode of the map
+     * "回复人1姓名", "回复人2姓名","回复人3姓名","回复人4姓名", "回复人5姓名"
+     */
+    private static String[] CHILDREN = 
+    	{"回复人1姓名", "回复人2姓名","回复人3姓名","回复人4姓名", "回复人5姓名"};
+    
     
 	private final String[] MODELTYPE = {"Model 1", "Model 2"};
     
@@ -222,11 +234,164 @@ public class ComPrecision extends Composite{
 		Button buttonComfirmModel = new Button(groupDocQuestion, SWT.BORDER);
 		buttonComfirmModel.setText("确认");
 		buttonComfirmModel.setBounds(560, 95, 90, 32);
+		buttonComfirmModel.addSelectionListener(new SelectionAdapter(){
+        	public void widgetSelected(SelectionEvent e){
+        		getResult();
+        	}
+        });
 		
+		Button buttonGetAccuracy = new Button(this, SWT.BORDER);
+		buttonGetAccuracy.setText("获取正确率");
+		buttonGetAccuracy.setBounds(200,420, 100, 35);
+		buttonGetAccuracy.addSelectionListener(new SelectionAdapter(){
+        	public void widgetSelected(SelectionEvent e){
+        		getAccuracy();
+        	}
+        });
 		
 	}
 	
+	/**
+	 * click the accuracy button and get the accuracy
+	 */
+	private void getAccuracy(){
+		String comboString = comboModelType.getText();
+		if (comboString.equals(MODELTYPE[0])){
+			// do as the model 1
+			getAccuracyModel1();
+			getRandomAccuracy();
+		}
+		else if(comboString.equals(MODELTYPE[1])){
+			// do as the model 2
+			getAccuracyModel2();
+		}
+		else{
+			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
+			messagebox.setText("Error");
+			messagebox.setMessage("请先选择 Model 类型!");
+			messagebox.open();					
+		}
+	}
 	
+	private void getAccuracyModel1(){
+		int docNum = ComPreprocess.docMapMap.size();
+		int countCorrect = 0 ;
+		int predictIndex;
+		for(int i = 1; i < docNum + 1; i++){
+			predictIndex = getResultModel1(i);
+			if(predictIndex == 0){
+				countCorrect += 1;
+			}
+		}
+		double accuracy = countCorrect * 1.0 / docNum;
+		System.out.println("推荐答案的正确率:" + accuracy);
+	}
+	
+	private void getRandomAccuracy(){
+		int docNum = ComPreprocess.docMapMap.size();
+		int ansNum;
+		double randomCorrectProb = 0.0;
+		for(Map.Entry<Integer, Map<String, String>> entry : ComPreprocess.docMapMap.entrySet()){
+			ansNum = 0;
+			for(int i = 0; i < CHILDREN2.length;i ++){
+				if(entry.getValue().get(CHILDREN2[i]).length() != 0){
+					ansNum += 1;
+				}
+			}
+			randomCorrectProb += 1.0 / ansNum;
+		}
+		double randomCorrect = randomCorrectProb / docNum;
+		System.out.println("答案的随机正确率:" + randomCorrect);
+
+	}
+
+	private void getAccuracyModel2(){
+		
+	}
+	
+	/**
+	 * click the "comfirm" button and choose which the type of model
+	 */
+	private void getResult(){
+		String comboString = comboModelType.getText();
+//		System.out.println(comboString);
+		if (comboString.equals(MODELTYPE[0])){
+			// do as the model 1
+			int predictIndex = getResultModel1(docIndex);
+			textPredictAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[predictIndex]));
+			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
+		}
+		else if(comboString.equals(MODELTYPE[1])){
+			// do as the model 2
+			getResultModel2();
+		}
+		else{
+			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
+			messagebox.setText("Error");
+			messagebox.setMessage("请先选择 Model 类型!");
+			messagebox.open();					
+		}
+	}
+	
+	/**
+	 * get the best answer for Model 1 among the answers the question provide
+	 */
+	private int getResultModel1(int index){
+		String segSentense;
+		String childNode;
+		String[] words;
+		int wordID;	
+		double scoreProduct, scoreSum;
+//		double sum = 0.0;
+		int k;
+		double bestAnsProb = 0.0;
+		int bestAnsI = 0;
+		
+		for(int i = 0; i < CHILDREN2.length; i++){
+			childNode = CHILDREN2[i];
+			segSentense = ComPreprocess.segDocMapMap.get(index).get(childNode);
+			
+			if(segSentense.length() != 0){
+				words = segSentense.split(" ");
+				
+				scoreProduct = 0.0;
+				
+				for(String word : words){
+					if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
+						continue;
+					}
+					wordID = ComModel1.vocabularyAnswer.getId(word);
+					scoreSum = 0.0;
+					for (k = 0; k < ComModel1.topicNumAnswer; k++){
+						scoreSum += ComModel1.phiAnswer[k][wordID] * ComModel1.thetaAnswer[index][k];
+					}
+					if (scoreProduct == 0.0 || scoreSum == 0.0){
+						scoreProduct = scoreSum;
+					}
+					else{
+						scoreProduct *= scoreSum;
+					}					
+				}
+				
+				if(scoreProduct > bestAnsProb){
+					bestAnsProb = scoreProduct;
+					bestAnsI = i;
+				}				
+			}
+		}
+		return bestAnsI;
+	}
+	
+	/**
+	 * get the best answer for Model 2 among the answers the question provide
+	 */
+	private void getResultModel2(){
+		
+	}
+	
+	/**
+	 * update the doc index label
+	 */
 	private void updateDocIndex(){
 		labelPresentDoc.setText("当前第 " + docIndex + " 条");
 	}
