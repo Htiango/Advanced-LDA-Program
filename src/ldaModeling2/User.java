@@ -64,6 +64,11 @@ public class User {
         return user2idMap.size();
     }
     
+    /**
+     * return the map that show the doc from each single expert
+     * @param docMapMap the doc map map from the ComPreprocess composite
+     * @return Map <br> Integer1 = id of expert<br>Integer2 = the Integer from the docMapMap<br>Integer3 = the index of the answer 
+     */
     public Map<Integer, Map<Integer, Integer>> getUser2DocAnsMapMap(Map<Integer, Map<String,String>> docMapMap){
     	Map<Integer, Map<Integer, Integer>> user2DocAnsMapMap;
     	user2DocAnsMapMap = new HashMap<Integer, Map<Integer,Integer>>();
@@ -72,7 +77,7 @@ public class User {
     		String expertName = id2userMap[i];
     		for(Map.Entry<Integer, Map<String, String>> entry :docMapMap.entrySet()){
     			for (int j = 0; j < CHILDREN.length; j ++){
-    				if (expertName == entry.getValue().get(CHILDREN[j])){
+    				if (expertName.equals(entry.getValue().get(CHILDREN[j]))){
     					docAnsIndexMap.put(entry.getKey(), j);
     				}
     				
