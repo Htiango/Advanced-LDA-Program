@@ -270,6 +270,8 @@ public class ComPrecision extends Composite{
 		else if(comboString.equals(MODELTYPE[1])){
 			// do as the model 2
 			getAccuracyModel2();
+			getRandomAccuracy();
+			getDiffAccuracyModel2();
 		}
 		else{
 			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
@@ -290,7 +292,7 @@ public class ComPrecision extends Composite{
 			}
 		}
 		double accuracy = countCorrect * 1.0 / docNum;
-		System.out.println("推荐答案的正确率:" + accuracy);
+		System.out.println("Model1--推荐答案的正确率:" + accuracy);
 	}
 	
 	private void getDiffAccuracyModel1(){
@@ -314,7 +316,7 @@ public class ComPrecision extends Composite{
 				}
 				double accuracy = countCorrect * 1.0 / docNum;
 				System.out.println("mu = " + mu[b] + "   lambda = " + lambda[a]);
-				System.out.println("推荐答案的正确率:" + accuracy);
+				System.out.println("Model1--推荐答案的正确率:" + accuracy);
 			}
 			
 		}
@@ -339,8 +341,46 @@ public class ComPrecision extends Composite{
 
 	}
 
+	
 	private void getAccuracyModel2(){
+		int docNum = ComPreprocess.docMapMap.size();
+		int countCorrect = 0 ;
+		int predictIndex;
+		for(int i = 1; i < docNum + 1; i++){
+			predictIndex = getAnsModel2(i, 0.7, 100);
+			if(predictIndex == 0){
+				countCorrect += 1;
+			}
+		}
+		double accuracy = countCorrect * 1.0 / docNum;
+		System.out.println("Model2--推荐答案的正确率:" + accuracy);
+	}
+	
+	private void getDiffAccuracyModel2(){
+		int docNum = ComPreprocess.docMapMap.size();
+		int countCorrect = 0 ;
+		int predictIndex;
+		double[] lambda = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
+		int[] mu = {10, 100, 500, 1000, 2000};
 		
+		for(int a = 0; a < lambda.length; a++){
+			
+			for(int b = 0; b < mu.length; b ++){
+				
+				countCorrect = 0;
+				
+				for(int i = 1; i < docNum + 1; i++){
+					predictIndex = getAnsModel2(i, lambda[a], mu[b]);
+					if(predictIndex == 0){
+						countCorrect += 1;
+					}
+				}
+				double accuracy = countCorrect * 1.0 / docNum;
+				System.out.println("mu = " + mu[b] + "   lambda = " + lambda[a]);
+				System.out.println("Model2--推荐答案的正确率:" + accuracy);
+			}
+			
+		}
 	}
 	
 	/**
@@ -357,7 +397,9 @@ public class ComPrecision extends Composite{
 		}
 		else if(comboString.equals(MODELTYPE[1])){
 			// do as the model 2
-			getResultModel2();
+			int predictIndex = getAnsModel2(docIndex, 0.7, 100);
+			textPredictAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[predictIndex]));
+			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
 		}
 		else{
 			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
@@ -369,8 +411,10 @@ public class ComPrecision extends Composite{
 	
 	/**
 	 * get the best answer for Model 1 among the answers the question provide
-	 * @param index lambda, mu
-	 * @return the best answer index
+	 * @param index     the index of doc from the Map<Integer, <String,String>> <br>starting from 1
+	 * @param lambda	parameter lower than 1 ---- {0.2,0.3,0.4,0.5,0.6,0.7,0.8}
+	 * @param mu		parameter {10,100,500,1000,2000}
+	 * @return the fit answer's index
 	 */
 	private int getResultModel1(int index, double lambda, int mu){
 		String segSentense;
@@ -405,7 +449,8 @@ public class ComPrecision extends Composite{
 					wordID = ComModel1.vocabularyAnswer.getId(word);
 					scoreSum = 0.0;
 					for (k = 0; k < ComModel1.topicNumAnswer; k++){
-						scoreSum += ComModel1.phiAnswer[k][wordID] * ComModel1.thetaAnswer[index][k];
+						scoreSum += ComModel1.phiAnswer[k][wordID] * 
+								ComModel1.thetaAnswer[(index-1)*5 + i][k];
 					}
 					
 					paraTemp = maxLikelihoodWordPerDoc(word, words);
@@ -505,9 +550,76 @@ public class ComPrecision extends Composite{
 	
 	/**
 	 * get the best answer for Model 2 among the answers the question provide
+	 * @param index
+	 * @param lambda
+	 * @param mu
+	 * @return
 	 */
-	private void getResultModel2(){
+	private int getAnsModel2(int index, double lambda, int mu){
+		String segSentense;
+		String childNode;
+		String[] words;
+		int wordID;	
+		double scoreProduct, scoreSum, scorePhiThetaProduct, scorePhiSum;
+//		double sum = 0.0;
+		int k, x;
+		double bestAnsProb = 0.0;
+		int bestAnsI = 0;
+		int wordsNum = 0;
+		double parameter1 = 0.0;
+		double parameter2 = 0.0;
+		double paraTemp =0.0;
 		
+		for(int i = 0; i < CHILDREN2.length; i++){
+			childNode = CHILDREN2[i];
+			segSentense = ComPreprocess.segDocMapMap.get(index).get(childNode);
+			
+			if(segSentense.length() != 0){
+				words = segSentense.split(" ");
+				
+				scoreProduct = 0.0;
+				
+				wordsNum = words.length;
+				
+				for(String word : words){
+					if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+						continue;
+					}
+					wordID = ComModel2.vocabularyAnswer.getId(word);
+					scoreSum = 0.0;
+					
+					for (k = 0; k < ComModel2.topicNumAnswer; k++){
+						scorePhiThetaProduct = 0.0;
+						
+						scorePhiSum = 0.0;
+						for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+							scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+						}
+						scorePhiThetaProduct = scorePhiSum * 
+								ComModel2.thetaAnswer[(index - 1) * 5 + i][k];
+						
+						scoreSum +=  scorePhiThetaProduct;	
+					}
+					
+					paraTemp = maxLikelihoodWordPerDoc(word, words);
+					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp * lambda ;					
+					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) * lambda
+							* maxLikelihoodWordAnsdoc(ComPreprocess.segDocMapMap).get(word);
+					
+					scoreSum = Math.log(scoreSum * (1- lambda)) + Math.log(parameter1) + 
+							Math.log(parameter2);
+					
+					scoreProduct += scoreSum;			
+				}
+				scoreProduct *= -1.0;
+				if(scoreProduct > bestAnsProb){
+					bestAnsProb = scoreProduct;
+					bestAnsI = i;
+				}	
+			}
+		}
+		
+		return bestAnsI;
 	}
 	
 	/**

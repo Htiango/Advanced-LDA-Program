@@ -311,11 +311,12 @@ public class ComPrediction extends Composite{
 						best3AnsInteger = entry.getKey();
 						best3AnsI = i;
 					}					
-					m += 1;
+					
 				}
+				m += 1;
 			}
 		}
-		System.out.println("总文档数：" + m);
+		System.out.println("总文档数(包括为空的)：" + m);
 		System.out.println("总概率：" + sum);
 		showTopicColor();
 		changeWordColor(textQuestion, SegWords.listToString(segQuestionWords));
@@ -580,12 +581,14 @@ public class ComPrediction extends Composite{
 						best3AnsInteger = entry.getKey();
 						best3AnsI = i;
 					}					
-					m += 1;
+					
 				}
+				m += 1;
 			}
 		}
-		System.out.println("总文档数：" + m);
+		System.out.println("总文档数（包括为空的）：" + m);
 		System.out.println("【推荐答案】总概率：" + sum);
+		System.out.println(ComModel2.thetaAnswer.length);
 //		showTopicColor();
 //		changeWordColor(textQuestion, SegWords.listToString(segQuestionWords));
 		printAnswer(1, ComPreprocess.docMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), 
