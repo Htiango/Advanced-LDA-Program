@@ -1,5 +1,6 @@
 package tabPages;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -66,6 +67,10 @@ public class ComPrecision extends Composite{
     private Text textOriginalAns;
     
     private Text textOriginalExpert;
+    
+    private boolean ifMapExist = false;
+    
+    private Map<String, Double> wordDocProb = new HashMap<String, Double>();
     
 //    /**
 //     * the child node of the xml file 
@@ -260,6 +265,7 @@ public class ComPrecision extends Composite{
 			// do as the model 1
 			getAccuracyModel1();
 			getRandomAccuracy();
+			getDiffAccuracyModel1();
 		}
 		else if(comboString.equals(MODELTYPE[1])){
 			// do as the model 2
@@ -278,13 +284,41 @@ public class ComPrecision extends Composite{
 		int countCorrect = 0 ;
 		int predictIndex;
 		for(int i = 1; i < docNum + 1; i++){
-			predictIndex = getResultModel1(i);
+			predictIndex = getResultModel1(i, 0.7, 100);
 			if(predictIndex == 0){
 				countCorrect += 1;
 			}
 		}
 		double accuracy = countCorrect * 1.0 / docNum;
 		System.out.println("推荐答案的正确率:" + accuracy);
+	}
+	
+	private void getDiffAccuracyModel1(){
+		int docNum = ComPreprocess.docMapMap.size();
+		int countCorrect = 0 ;
+		int predictIndex;
+		double[] lambda = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
+		int[] mu = {10, 100, 500, 1000, 2000};
+		
+		for(int a = 0; a < lambda.length; a++){
+			
+			for(int b = 0; b < mu.length; b ++){
+				
+				countCorrect = 0;
+				
+				for(int i = 1; i < docNum + 1; i++){
+					predictIndex = getResultModel1(i, lambda[a], mu[b]);
+					if(predictIndex == 0){
+						countCorrect += 1;
+					}
+				}
+				double accuracy = countCorrect * 1.0 / docNum;
+				System.out.println("mu = " + mu[b] + "   lambda = " + lambda[a]);
+				System.out.println("推荐答案的正确率:" + accuracy);
+			}
+			
+		}
+		
 	}
 	
 	private void getRandomAccuracy(){
@@ -317,7 +351,7 @@ public class ComPrecision extends Composite{
 //		System.out.println(comboString);
 		if (comboString.equals(MODELTYPE[0])){
 			// do as the model 1
-			int predictIndex = getResultModel1(docIndex);
+			int predictIndex = getResultModel1(docIndex, 0.7, 100);
 			textPredictAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[predictIndex]));
 			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
 		}
@@ -335,8 +369,10 @@ public class ComPrecision extends Composite{
 	
 	/**
 	 * get the best answer for Model 1 among the answers the question provide
+	 * @param index lambda, mu
+	 * @return the best answer index
 	 */
-	private int getResultModel1(int index){
+	private int getResultModel1(int index, double lambda, int mu){
 		String segSentense;
 		String childNode;
 		String[] words;
@@ -346,6 +382,10 @@ public class ComPrecision extends Composite{
 		int k;
 		double bestAnsProb = 0.0;
 		int bestAnsI = 0;
+		int wordsNum = 0;
+		double parameter1 = 0.0;
+		double parameter2 = 0.0;
+		double paraTemp =0.0;
 		
 		for(int i = 0; i < CHILDREN2.length; i++){
 			childNode = CHILDREN2[i];
@@ -356,6 +396,8 @@ public class ComPrecision extends Composite{
 				
 				scoreProduct = 0.0;
 				
+				wordsNum = words.length;
+				
 				for(String word : words){
 					if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
 						continue;
@@ -365,13 +407,33 @@ public class ComPrecision extends Composite{
 					for (k = 0; k < ComModel1.topicNumAnswer; k++){
 						scoreSum += ComModel1.phiAnswer[k][wordID] * ComModel1.thetaAnswer[index][k];
 					}
-					if (scoreProduct == 0.0 || scoreSum == 0.0){
-						scoreProduct = scoreSum;
-					}
-					else{
-						scoreProduct *= scoreSum;
-					}					
+					
+					paraTemp = maxLikelihoodWordPerDoc(word, words);
+					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp * lambda ;					
+					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) * lambda
+							* maxLikelihoodWordAnsdoc(ComPreprocess.segDocMapMap).get(word);
+					
+//					System.out.println(word+" , " + "wordNum:" + wordsNum);
+//					System.out.println("paraTemp: " + paraTemp);
+//					System.out.println("para1: " + parameter1);
+//					System.out.println("para2: " + parameter2);
+//					System.out.println("ldasum: " + scoreSum);
+					
+					scoreSum = Math.log(scoreSum * (1- lambda)) + Math.log(parameter1) + Math.log(parameter2);
+					
+					scoreProduct += scoreSum;
+					
+//					System.out.println("scoreSum: " + scoreSum);					
+					
+//					if (scoreProduct == 0.0 || scoreSum == 0.0){
+//						scoreProduct = scoreSum;
+//					}
+//					else{
+//						scoreProduct *= scoreSum;
+//					}					
 				}
+				
+				scoreProduct *= -1.0;
 				
 				if(scoreProduct > bestAnsProb){
 					bestAnsProb = scoreProduct;
@@ -381,6 +443,65 @@ public class ComPrecision extends Composite{
 		}
 		return bestAnsI;
 	}
+	
+	
+	private Map<String, Double> maxLikelihoodWordAnsdoc(Map<Integer, Map<String,String>> segDocMapMap){
+		if(ifMapExist == true){
+			return wordDocProb;
+		}
+		
+		Map<String, Integer> wordsCountMap = new HashMap<String, Integer>();
+		Map<String, Double> wordsDocMaxLikelihood = new HashMap<String, Double>();
+		String word = "";
+		int vocabularySize = 0;
+		int totalWordsNum = 0; 
+		String[] segWords;
+		vocabularySize = ComModel1.vocabularyAnswer.size();
+		
+		// initializing
+		for(int i = 0; i < vocabularySize; i ++){
+			word = ComModel1.vocabularyAnswer.getWord(i);
+			wordsCountMap.put(word, 0);
+		}
+		
+		for(Map.Entry<Integer, Map<String, String>> entry : segDocMapMap.entrySet()){
+			for(int i = 0 ; i < CHILDREN2.length; i ++){
+				segWords = entry.getValue().get(CHILDREN2[i]).split("\\s");
+				totalWordsNum += segWords.length;
+				for(String segWord : segWords){
+					if(wordsCountMap.get(segWord) != null){
+						wordsCountMap.put(segWord, wordsCountMap.get(segWord)+1);
+					}
+				}
+			}
+		}
+		
+		for(Map.Entry<String, Integer> entry : wordsCountMap.entrySet()){
+			wordsDocMaxLikelihood.put(entry.getKey(), entry.getValue() * 1.0 / totalWordsNum);
+		}
+		
+		wordDocProb = wordsDocMaxLikelihood;
+		ifMapExist = true;
+		
+		return wordsDocMaxLikelihood;
+	}
+	
+	private double maxLikelihoodWordPerDoc(String word, String[] sentense){
+		double maxLikelihoodProb;
+		int sentenseLength = sentense.length;
+		int wordCount = 0;
+		
+		for(String temp : sentense){
+			if(word.equals(temp) ){
+				wordCount += 1;
+			}
+		}
+		
+		maxLikelihoodProb = wordCount * 1.0 / sentenseLength;
+		
+		return maxLikelihoodProb;
+	}
+	
 	
 	/**
 	 * get the best answer for Model 2 among the answers the question provide
