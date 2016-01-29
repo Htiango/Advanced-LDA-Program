@@ -60,6 +60,8 @@ public class ComPrecision extends Composite{
     
     private Combo comboModelType;
     
+    private Combo comboModelType2;
+    
     private Text textPredictAns;
     
     private Text textPredictExpert;
@@ -67,6 +69,10 @@ public class ComPrecision extends Composite{
     private Text textOriginalAns;
     
     private Text textOriginalExpert;
+    
+    private Text textAccuracyAns;
+    
+    private Text textAccuracyExpert;
     
     private boolean ifMapExist = false;
     
@@ -252,9 +258,37 @@ public class ComPrecision extends Composite{
         	}
         });
 		
+		Label labelModelType2 = new Label(this, SWT.BORDER);
+		labelModelType2.setText("请选择 Model 类型：");
+		labelModelType2.setBounds(40, 410, 120, 20);
+		
+		comboModelType2 = new Combo(this, SWT.READ_ONLY);
+		comboModelType2.setBounds(40, 440, 100, 20);
+		comboModelType2.setItems(MODELTYPE);
+		
+		Group groupAccuracy = new Group(this, SWT.BORDER);
+		groupAccuracy.setText("正确率");
+		groupAccuracy.setBounds(170, 410, 500, 100);
+		
+		Group groupAccuracyAns = new Group(groupAccuracy, SWT.BORDER);
+		groupAccuracyAns.setText("预测答案正确率：");
+		groupAccuracyAns.setBounds(5, 0, 240, 80);
+		
+		Group groupAccuracyExpert = new Group(groupAccuracy, SWT.BORDER);
+		groupAccuracyExpert.setText("预测专家正确率：");
+		groupAccuracyExpert.setBounds(250, 0, 240, 80);
+		
+		textAccuracyAns = new Text(groupAccuracyAns, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		textAccuracyAns.setBounds(5, 3, 225, 55);
+		textAccuracyAns.setBackground(new Color(null,230,230,230));
+		
+		textAccuracyExpert = new Text(groupAccuracyExpert, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
+		textAccuracyExpert.setBounds(5, 3, 225, 55);
+		textAccuracyExpert.setBackground(new Color(null,230,230,230));
+		
 		Button buttonGetAccuracy = new Button(this, SWT.BORDER);
 		buttonGetAccuracy.setText("获取正确率");
-		buttonGetAccuracy.setBounds(200,420, 100, 35);
+		buttonGetAccuracy.setBounds(40,470, 100, 35);
 		buttonGetAccuracy.addSelectionListener(new SelectionAdapter(){
         	public void widgetSelected(SelectionEvent e){
         		getAccuracy();
@@ -267,17 +301,22 @@ public class ComPrecision extends Composite{
 	 * click the accuracy button and get the accuracy
 	 */
 	private void getAccuracy(){
-		String comboString = comboModelType.getText();
+		textAccuracyAns.setText("");
+		textAccuracyExpert.setText("");
+		String comboString = comboModelType2.getText();
+		int type = 0;
 		if (comboString.equals(MODELTYPE[0])){
 			// do as the model 1
+			type = 1;
 			getAccuracyModel1();
-			getRandomAccuracy();
+			getRandomAccuracy(type);
 			getDiffAccuracyModel1();
 		}
 		else if(comboString.equals(MODELTYPE[1])){
 			// do as the model 2
+			type = 2;
 			getAccuracyModel2();
-			getRandomAccuracy();
+			getRandomAccuracy(type);
 			getDiffAccuracyModel2();
 		}
 		else{
@@ -300,6 +339,7 @@ public class ComPrecision extends Composite{
 		}
 		double accuracy = countCorrect * 1.0 / docNum;
 		System.out.println("Model1--推荐答案的正确率:" + accuracy);
+		textAccuracyAns.setText("Model1--推荐答案的正确率:" + accuracy + "\n"+ "\n");
 	}
 	
 	private void getDiffAccuracyModel1(){
@@ -324,13 +364,16 @@ public class ComPrecision extends Composite{
 				double accuracy = countCorrect * 1.0 / docNum;
 				System.out.println("mu = " + mu[b] + "   lambda = " + lambda[a]);
 				System.out.println("Model1--推荐答案的正确率:" + accuracy);
+				
+				textAccuracyAns.append("mu = " + mu[b] + "   lambda = " + lambda[a]+ "\n");
+				textAccuracyAns.append("Model1--推荐答案的正确率:" + accuracy + "\n"+ "\n");
 			}
 			
 		}
 		
 	}
 	
-	private void getRandomAccuracy(){
+	private void getRandomAccuracy(int type){
 		int docNum = ComPreprocess.docMapMap.size();
 		int ansNum;
 		double randomCorrectProb = 0.0;
@@ -345,7 +388,11 @@ public class ComPrecision extends Composite{
 		}
 		double randomCorrect = randomCorrectProb / docNum;
 		System.out.println("答案的随机正确率:" + randomCorrect);
-
+		textAccuracyAns.append("答案的随机正确率:" + randomCorrect+ "\n" + "\n");
+		
+		if(type != 1){
+			textAccuracyExpert.append("答案的随机正确率:" + randomCorrect+ "\n"+ "\n");
+		}
 	}
 
 	
@@ -370,6 +417,10 @@ public class ComPrecision extends Composite{
 		double expertAccuracy = countExpertCorrect * 1.0 / docNum;
 		System.out.println("Model2--推荐答案的正确率:" + ansAccuracy);
 		System.out.println("Model2--推荐专家的正确率:" + expertAccuracy);
+		
+		textAccuracyAns.setText("Model1--推荐答案的正确率:" + ansAccuracy+ "\n"+ "\n");
+		textAccuracyExpert.setText("Model2--推荐专家的正确率:" + expertAccuracy+ "\n"+ "\n");
+		
 	}
 	
 	private void getDiffAccuracyModel2(){
@@ -403,6 +454,11 @@ public class ComPrecision extends Composite{
 				System.out.println("mu = " + mu[b] + "   lambda = " + lambda[a]);
 				System.out.println("Model2--推荐答案的正确率:" + ansAccuracy);
 				System.out.println("Model2--推荐专家的正确率:" + expertAccuracy);
+				
+				textAccuracyAns.append("mu = " + mu[b] + "   lambda = " + lambda[a]+ "\n");
+				textAccuracyExpert.append("mu = " + mu[b] + "   lambda = " + lambda[a]+ "\n");
+				textAccuracyAns.append("Model1--推荐答案的正确率:" + ansAccuracy + "\n"+ "\n");
+				textAccuracyExpert.append("Model2--推荐专家的正确率:" + expertAccuracy + "\n"+ "\n");
 			}
 			
 		}
@@ -483,8 +539,8 @@ public class ComPrecision extends Composite{
 					}
 					
 					paraTemp = maxLikelihoodWordPerDoc(word, words);
-					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp * lambda ;					
-					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) * lambda
+					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp  ;					
+					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) 
 							* maxLikelihoodWordAnsdoc(ComPreprocess.segDocMapMap).get(word);
 					
 //					System.out.println(word+" , " + "wordNum:" + wordsNum);
@@ -493,7 +549,8 @@ public class ComPrecision extends Composite{
 //					System.out.println("para2: " + parameter2);
 //					System.out.println("ldasum: " + scoreSum);
 					
-					scoreSum = Math.log(scoreSum * (1- lambda)) + Math.log(parameter1) + Math.log(parameter2);
+					scoreSum = Math.log(scoreSum)* (1- lambda) + Math.log(parameter1)* lambda 
+							+ Math.log(parameter2) * lambda;
 					
 					scoreProduct += scoreSum;
 					
@@ -691,12 +748,12 @@ public class ComPrecision extends Composite{
 					}
 					
 					paraTemp = maxLikelihoodWordPerDoc(word, words);
-					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp * lambda ;					
-					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) * lambda
+					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp  ;					
+					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) 
 							* maxLikelihoodWordAnsdoc(ComPreprocess.segDocMapMap).get(word);
 					
-					scoreSum = Math.log(scoreSum * (1- lambda)) + Math.log(parameter1) + 
-							Math.log(parameter2);
+					scoreSum = Math.log(scoreSum)* (1- lambda) + Math.log(parameter1)* lambda 
+							+ Math.log(parameter2) * lambda;					
 					
 					scoreProduct += scoreSum;			
 				}
@@ -765,12 +822,13 @@ public class ComPrecision extends Composite{
 					}
 					
 					paraTemp = maxLikelihoodWordPerUser(word, userName);
-					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp * lambda ;					
-					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) * lambda
+					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp;					
+					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) 
 							* maxLikelihoodWordAnsdoc(ComPreprocess.segDocMapMap).get(word);
 					
-					scoreSum = Math.log(scoreSum * (1- lambda)) + Math.log(parameter1) + 
-							Math.log(parameter2);
+					scoreSum = Math.log(scoreSum)* (1- lambda) + Math.log(parameter1)* lambda 
+							+ Math.log(parameter2) * lambda;
+					
 					
 					scoreProduct += scoreSum;
 				}
