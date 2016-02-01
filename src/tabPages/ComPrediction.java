@@ -212,13 +212,14 @@ public class ComPrediction extends Composite{
 	private void getResult(){
 		String comboString = comboModelType.getText();
 		System.out.println(comboString);
+		int type = ComPreprocess.indexType;
 		if (comboString.equals(MODELTYPE[0])){
 			// do as the model 1
-			getResultModel1();
+			getResultModel1(type);
 		}
 		else if(comboString.equals(MODELTYPE[1])){
 			// do as the model 2
-			getResultModel2();
+			getResultModel2(type);
 		}
 		else{
 			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
@@ -231,10 +232,10 @@ public class ComPrediction extends Composite{
 	/**
 	 * get the top 3 best answer for Model 1
 	 */
-	private void getResultModel1(){
+	private void getResultModel1(int type){
 		String questionContent = textQuestion.getText();
 		List<String> segQuestionWords;
-		segQuestionWords = SegWords.segQuestionWords(questionContent);
+		segQuestionWords = SegWords.segQuestionWords(questionContent, type);
 		System.out.println(segQuestionWords);
 		System.out.println("【phi矩阵】" + ComModel1.phiAnswer);
 		System.out.println("【theta长度】"+ComModel1.thetaAnswer.length);
@@ -480,10 +481,10 @@ public class ComPrediction extends Composite{
 	/**
 	 * get the top 3 best answers and top 3 best user2 for Model2
 	 */
-	private void getResultModel2(){
+	private void getResultModel2(int type){
 		String questionContent = textQuestion.getText();
 		List<String> segQuestionWords;
-		segQuestionWords = SegWords.segQuestionWords(questionContent);
+		segQuestionWords = SegWords.segQuestionWords(questionContent, type);
 		getAnsModel2(segQuestionWords);
 		getExpertModel2(segQuestionWords);
 	}

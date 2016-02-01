@@ -913,7 +913,7 @@ public class ComPrecision extends Composite{
 		String inputText;
 		childContent = ComPreprocess.docMapMap.get(docIndex).get(childText);
 		if (childContent.length() != 0){
-			inputText = "【" + childText +"】：" + childContent; 
+			inputText = "【" + childText +"】：" + childContent+"\n"; 
 			textQuestionDetail.append(inputText);
 			textQuestionDetail.append("\n\n");
 		}

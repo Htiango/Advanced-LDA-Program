@@ -14,6 +14,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
@@ -132,6 +133,12 @@ public class ComPreprocess extends Composite{
 			new HashMap<Integer, Map<String,String>>();
     
     /**
+     * the index of the model type<br>
+     * 0:"不使用词典", <br>1: "使用词典", <br>2:"只保留词典"
+     */
+    public static int indexType;
+    
+    /**
      * the number of the Experts passed to the tabPage ComPrecision
      */
     public static int numExperts;
@@ -211,6 +218,7 @@ public class ComPreprocess extends Composite{
      */
     private int repeat100Num; 
     
+    private Combo comboModelType;
     
     /**
      * the child node of the xml file 
@@ -235,6 +243,11 @@ public class ComPreprocess extends Composite{
     private static String[] CHILDREN3 = 
     	{"回复人1姓名", "回复人2姓名","回复人3姓名","回复人4姓名", "回复人5姓名"};
 
+
+    /**
+     * 0:"不使用词典", <br>1: "使用词典", <br>2:"只保留词典"
+     */
+    private final String[] MODELTYPE = {"不使用词典", "使用词典","只保留词典"};
     
   
 	
@@ -436,10 +449,18 @@ public class ComPreprocess extends Composite{
         docDetailText.setBounds(2,0,302,140);
         docDetailText.setBackground(new Color(null,230,230,230));
         
+        Label labelModelType = new Label(this, SWT.BORDER);
+		labelModelType.setText("请选择 Model 类型：");
+		labelModelType.setBounds(50, 470, 120, 30);
+        
+        comboModelType = new Combo(this, SWT.BORDER);
+        comboModelType.setBounds(200, 470, 150, 50);
+		comboModelType.setItems(MODELTYPE);
+        
         Button buttonSegWords = new Button(this, SWT.BORDER);
         buttonSegWords.setText("进行分词");
         buttonSegWords.setBackground(new Color(null,230,230,230));
-        buttonSegWords.setBounds(75,465, 200, 40);
+        buttonSegWords.setBounds(400,465, 200, 40);
         buttonSegWords.addSelectionListener(new SelectionAdapter() {
         	public void widgetSelected(SelectionEvent e){
         		if (ifSeg == false){
@@ -525,7 +546,10 @@ public class ComPreprocess extends Composite{
 	 */
 	private void doSegging(){
 		segWords = new SegWords();
-		segWords.segWords(xmlReader.docMapMap, xmlReader.docNum);
+		int type = comboModelType.getSelectionIndex();
+//		System.out.println(type);
+		indexType = type;
+		segWords.segWords(xmlReader.docMapMap, xmlReader.docNum,type);
 		segDocMapMap = segWords.segDocMapMap;
 		fillSegInfo();
 		fillSegDetail();

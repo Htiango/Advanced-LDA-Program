@@ -1,9 +1,11 @@
 package preprocessing;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
+import edu.fudan.ml.types.Dictionary;
 import edu.fudan.nlp.cn.tag.CWSTagger;
 import edu.fudan.nlp.corpus.StopWords;
 
@@ -19,7 +21,7 @@ public class SegWords {
 			new HashMap<Integer, Map<String,String>>();
 	
 	
-	public void segWords(Map<Integer, Map<String,String>> docMapMap, int docNum){
+	public void segWords(Map<Integer, Map<String,String>> docMapMap, int docNum, int type){
 		
 		Integer id;
 		int idIndex;
@@ -34,7 +36,14 @@ public class SegWords {
 
 		
 		try{
-			tag = new CWSTagger("./models/seg.m");
+			Dictionary dic = new Dictionary("./models/dict_ambiguity_disease.txt",true);
+			if (type == 0){
+				tag = new CWSTagger("./models/seg.m");
+			}
+			else{
+				
+				tag = new CWSTagger("./models/seg.m", dic);
+			}
 			StopWords stopWords = new StopWords("./models/stopwords/StopWords.txt"); 
 			
 			for (Map.Entry<Integer, Map<String,String>> entry : docMapMap.entrySet()){
@@ -46,6 +55,11 @@ public class SegWords {
 					segSentense = tag.tag(sentense);
 					words = segSentense.split("\\s");
 					baseWords = stopWords.phraseDel(words);
+					
+					if(type == 2){
+						baseWords = removeNonDicWords(baseWords, dic);
+					}
+					
 					non_stopwords_segSentense = listToString(baseWords);
 					segDocMap[idIndex-1].put(CHILDREN[i], non_stopwords_segSentense);
 				}
@@ -58,24 +72,48 @@ public class SegWords {
 		
 	}
 	
-	public static List<String> segQuestionWords(String questionContent){
+	public static List<String> segQuestionWords(String questionContent, int type){
     	CWSTagger tag;
     	String seg_questionContent = null;
+    	List<String> result = new ArrayList<String>();
+    	
     	try{
-			tag = new CWSTagger("./models/seg.m");
+    		Dictionary dic = new Dictionary("./models/dict_ambiguity_disease.txt",true);
+    		
+    		if (type == 0){
+				tag = new CWSTagger("./models/seg.m");
+			}
+			else{
+				
+				tag = new CWSTagger("./models/seg.m", dic);
+			}
 			
 			seg_questionContent = tag.tag(questionContent);
+			
+			StopWords stopWords = new StopWords("./models/stopwords/StopWords.txt"); 
+	    	
+	    	String[] words = seg_questionContent.split("\\s+");		
+			result = stopWords.phraseDel(words);
+			if(type == 2){
+				result = removeNonDicWords(result, dic);
+			}
+			
 		}catch (Exception e) {
             e.printStackTrace();
-        }
-    	
-    	StopWords stopWords = new StopWords("./models/stopwords/StopWords.txt"); 
-    	
-    	String[] words = seg_questionContent.split("\\s+");		
-		List<String> result = stopWords.phraseDel(words);
-		
+        }   	    			
 		return result;   	
     }
+	
+	private static List<String> removeNonDicWords(List<String> baseWords, Dictionary dic){
+		List<String> nonDicWords = new ArrayList<String>();
+		for(String word : baseWords){
+			boolean ifContain = dic.contains(word);
+			if( ifContain){
+				nonDicWords.add(word);
+			}
+		}
+		return nonDicWords;
+	}
 	
 	public static String listToString(List<String> stringList){
          /**
