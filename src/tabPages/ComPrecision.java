@@ -328,10 +328,17 @@ public class ComPrecision extends Composite{
 	}
 	
 	private void getAccuracyModel1(){
-		int docNum = ComPreprocess.docMapMap.size();
+		int mapSize = ComPreprocess.docMapMap.size();
+		int docNum = 0;
 		int countCorrect = 0 ;
 		int predictIndex;
-		for(int i = 1; i < docNum + 1; i++){
+		for(int i = 1; i < mapSize + 1; i++){
+			
+			if(!whetherMoreAns(i)){
+				continue;
+			}
+			docNum += 1;
+			
 			predictIndex = getResultModel1(i, 0.7, 100);
 			if(predictIndex == 0){
 				countCorrect += 1;
@@ -343,7 +350,8 @@ public class ComPrecision extends Composite{
 	}
 	
 	private void getDiffAccuracyModel1(){
-		int docNum = ComPreprocess.docMapMap.size();
+		int mapSize = ComPreprocess.docMapMap.size();
+		int docNum = 0;
 		int countCorrect = 0 ;
 		int predictIndex;
 		double[] lambda = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
@@ -355,12 +363,21 @@ public class ComPrecision extends Composite{
 				
 				countCorrect = 0;
 				
-				for(int i = 1; i < docNum + 1; i++){
+				docNum = 0;
+				
+				for(int i = 1; i < mapSize + 1; i++){
+					if(!whetherMoreAns(i)){
+						continue;
+					}
+					docNum += 1;
 					predictIndex = getResultModel1(i, lambda[a], mu[b]);
 					if(predictIndex == 0){
 						countCorrect += 1;
 					}
 				}
+				
+//				System.out.println("答案多于1的问题数： " + docNum);
+				
 				double accuracy = countCorrect * 1.0 / docNum;
 				System.out.println("mu = " + mu[b] + "   lambda = " + lambda[a]);
 				System.out.println("Model1--推荐答案的正确率:" + accuracy);
@@ -374,7 +391,8 @@ public class ComPrecision extends Composite{
 	}
 	
 	private void getRandomAccuracy(int type){
-		int docNum = ComPreprocess.docMapMap.size();
+		int docNum = 0;
+//		int mapSize = ComPreprocess.docMapMap.size();
 		int ansNum;
 		double randomCorrectProb = 0.0;
 		for(Map.Entry<Integer, Map<String, String>> entry : ComPreprocess.docMapMap.entrySet()){
@@ -384,9 +402,13 @@ public class ComPrecision extends Composite{
 					ansNum += 1;
 				}
 			}
-			randomCorrectProb += 1.0 / ansNum;
+			if(ansNum > 1){
+				docNum += 1;
+				randomCorrectProb += 1.0 / ansNum;
+			}
 		}
 		double randomCorrect = randomCorrectProb / docNum;
+//		System.out.println("答案多于1的问题数： " + docNum);
 		System.out.println("答案的随机正确率:" + randomCorrect);
 		textAccuracyAns.append("答案的随机正确率:" + randomCorrect+ "\n" + "\n");
 		
@@ -394,15 +416,43 @@ public class ComPrecision extends Composite{
 			textAccuracyExpert.append("答案的随机正确率:" + randomCorrect+ "\n"+ "\n");
 		}
 	}
+	
+	private boolean whetherMoreAns(int index){
+		int numAns = 0;
+		String segSentense;
+		String childNode;
+		
+		for(int i = 0; i < CHILDREN2.length; i++){
+			childNode = CHILDREN2[i];
+			segSentense = ComPreprocess.segDocMapMap.get(index).get(childNode);
+			if(segSentense.length() != 0){
+				numAns += 1;
+			}
+		}
+		
+		if(numAns >= 2){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
 
 	
 	private void getAccuracyModel2(){
-		int docNum = ComPreprocess.docMapMap.size();
+		int docNum = 0;
+		int mapSize = ComPreprocess.docMapMap.size();
 		int countAnsCorrect = 0 ;
 		int countExpertCorrect = 0;
 		int predictAnsIndex;
 		int predictExpertIndex;
-		for(int i = 1; i < docNum + 1; i++){
+		for(int i = 1; i < mapSize + 1; i++){
+			
+			if(!whetherMoreAns(i)){
+				continue;
+			}
+			docNum += 1;
+			
 			predictAnsIndex = getAnsModel2(i, 0.7, 100);
 			predictExpertIndex = getExpertModel2(i, 0.7, 100);
 			if(predictAnsIndex == 0){
@@ -424,7 +474,8 @@ public class ComPrecision extends Composite{
 	}
 	
 	private void getDiffAccuracyModel2(){
-		int docNum = ComPreprocess.docMapMap.size();
+		int docNum = 0;
+		int mapSize = ComPreprocess.docMapMap.size();
 		int countAnsCorrect = 0 ;
 		int countExpertCorrect = 0;
 		int predictAnsIndex;
@@ -438,8 +489,13 @@ public class ComPrecision extends Composite{
 				
 				countAnsCorrect = 0;
 				countExpertCorrect = 0;
+				docNum = 0;
 				
-				for(int i = 1; i < docNum + 1; i++){
+				for(int i = 1; i < mapSize + 1; i++){
+					if(!whetherMoreAns(i)){
+						continue;
+					}
+					docNum += 1;
 					predictAnsIndex = getAnsModel2(i, lambda[a], mu[b]);
 					predictExpertIndex = getExpertModel2(i, lambda[a], mu[b]);
 					if(predictAnsIndex == 0){
