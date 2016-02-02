@@ -1,7 +1,11 @@
 package tabPages;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
+//import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -15,6 +19,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+//import preprocessing.SegWords;
 
 public class ComPrecision extends Composite{
 	
@@ -73,17 +79,8 @@ public class ComPrecision extends Composite{
     private Text textAccuracyAns;
     
     private Text textAccuracyExpert;
+  
     
-    private boolean ifMapExist = false;
-    
-    private boolean ifMapExist2 = false;
-    
-    private Map<String, Double> wordDocProb = new HashMap<String, Double>();
-    
-    private Map<String, Integer> wordUserMap = new HashMap<String, Integer>();
-    
-    private Map<Integer, Map<Integer, Integer>> user2DocAnsMapMap =
-    		new HashMap<Integer, Map<Integer, Integer>>();
     
 //    /**
 //     * the child node of the xml file 
@@ -295,7 +292,22 @@ public class ComPrecision extends Composite{
         	}
         });
 		
+		
+//		Button buttonTest = new Button(this, SWT.BORDER);
+//		buttonTest.setText("Test");
+//		buttonTest.setBounds(0,0, 50, 20);
+//		buttonTest.addSelectionListener(new SelectionAdapter(){
+//        	public void widgetSelected(SelectionEvent e){
+//        		Test();
+//        	}
+//        });
+		
 	}
+	
+//	private void Test(){
+//		double[][] test = ComModel1.thetaAnswer;
+//		System.out.println("thetaAnswer size:" + test.length);		
+//	}
 	
 	/**
 	 * click the accuracy button and get the accuracy
@@ -310,14 +322,14 @@ public class ComPrecision extends Composite{
 			type = 1;
 			getAccuracyModel1();
 			getRandomAccuracy(type);
-			getDiffAccuracyModel1();
+//			getDiffAccuracyModel1();
 		}
 		else if(comboString.equals(MODELTYPE[1])){
 			// do as the model 2
 			type = 2;
 			getAccuracyModel2();
 			getRandomAccuracy(type);
-			getDiffAccuracyModel2();
+//			getDiffAccuracyModel2();
 		}
 		else{
 			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
@@ -329,18 +341,15 @@ public class ComPrecision extends Composite{
 	
 	private void getAccuracyModel1(){
 		int mapSize = ComPreprocess.docMapMap.size();
-		int docNum = 0;
+		int docNum = mapSize;
 		int countCorrect = 0 ;
-		int predictIndex;
+		int[] predictIndex = new int[2];
+//		int predictDocIndex, predictAnsIndex;
 		for(int i = 1; i < mapSize + 1; i++){
 			
-			if(!whetherMoreAns(i)){
-				continue;
-			}
-			docNum += 1;
+			predictIndex = getResultModel1(i);
 			
-			predictIndex = getResultModel1(i, 0.7, 100);
-			if(predictIndex == 0){
+			if(predictIndex[0] == i){
 				countCorrect += 1;
 			}
 		}
@@ -349,116 +358,20 @@ public class ComPrecision extends Composite{
 		textAccuracyAns.setText("Model1--推荐答案的正确率:" + accuracy + "\n"+ "\n");
 	}
 	
-	private void getDiffAccuracyModel1(){
-		int mapSize = ComPreprocess.docMapMap.size();
-		int docNum = 0;
-		int countCorrect = 0 ;
-		int predictIndex;
-		double[] lambda = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
-		int[] mu = {10, 100, 500, 1000, 2000};
-		
-		for(int a = 0; a < lambda.length; a++){
-			
-			for(int b = 0; b < mu.length; b ++){
-				
-				countCorrect = 0;
-				
-				docNum = 0;
-				
-				for(int i = 1; i < mapSize + 1; i++){
-					if(!whetherMoreAns(i)){
-						continue;
-					}
-					docNum += 1;
-					predictIndex = getResultModel1(i, lambda[a], mu[b]);
-					if(predictIndex == 0){
-						countCorrect += 1;
-					}
-				}
-				
-//				System.out.println("答案多于1的问题数： " + docNum);
-				
-				double accuracy = countCorrect * 1.0 / docNum;
-				System.out.println("mu = " + mu[b] + "   lambda = " + lambda[a]);
-				System.out.println("Model1--推荐答案的正确率:" + accuracy);
-				
-				textAccuracyAns.append("mu = " + mu[b] + "   lambda = " + lambda[a]+ "\n");
-				textAccuracyAns.append("Model1--推荐答案的正确率:" + accuracy + "\n"+ "\n");
-			}
-			
-		}
-		
-	}
-	
-	private void getRandomAccuracy(int type){
-		int docNum = 0;
-//		int mapSize = ComPreprocess.docMapMap.size();
-		int ansNum;
-		double randomCorrectProb = 0.0;
-		for(Map.Entry<Integer, Map<String, String>> entry : ComPreprocess.docMapMap.entrySet()){
-			ansNum = 0;
-			for(int i = 0; i < CHILDREN2.length;i ++){
-				if(entry.getValue().get(CHILDREN2[i]).length() != 0){
-					ansNum += 1;
-				}
-			}
-			if(ansNum > 1){
-				docNum += 1;
-				randomCorrectProb += 1.0 / ansNum;
-			}
-		}
-		double randomCorrect = randomCorrectProb / docNum;
-//		System.out.println("答案多于1的问题数： " + docNum);
-		System.out.println("答案的随机正确率:" + randomCorrect);
-		textAccuracyAns.append("答案的随机正确率:" + randomCorrect+ "\n" + "\n");
-		
-		if(type != 1){
-			textAccuracyExpert.append("答案的随机正确率:" + randomCorrect+ "\n"+ "\n");
-		}
-	}
-	
-	private boolean whetherMoreAns(int index){
-		int numAns = 0;
-		String segSentense;
-		String childNode;
-		
-		for(int i = 0; i < CHILDREN2.length; i++){
-			childNode = CHILDREN2[i];
-			segSentense = ComPreprocess.segDocMapMap.get(index).get(childNode);
-			if(segSentense.length() != 0){
-				numAns += 1;
-			}
-		}
-		
-		if(numAns >= 2){
-			return true;
-		}
-		else{
-			return false;
-		}
-	}
-
-	
 	private void getAccuracyModel2(){
-		int docNum = 0;
 		int mapSize = ComPreprocess.docMapMap.size();
+		int docNum = mapSize;
 		int countAnsCorrect = 0 ;
 		int countExpertCorrect = 0;
-		int predictAnsIndex;
-		int predictExpertIndex;
+		int[] predictAnsIndex;
+		int[] predictExpertIndex;
 		for(int i = 1; i < mapSize + 1; i++){
-			
-			if(!whetherMoreAns(i)){
-				continue;
-			}
-			docNum += 1;
-			
-			predictAnsIndex = getAnsModel2(i, 0.7, 100);
-			predictExpertIndex = getExpertModel2(i, 0.7, 100);
-			if(predictAnsIndex == 0){
+			predictAnsIndex = getAnsModel2(i);
+			predictExpertIndex = getExpertModel2(i);
+			if(predictAnsIndex[0] == i){
 				countAnsCorrect += 1;
 			}
-			if(predictExpertIndex == 0){
+			if(predictExpertIndex[0] == i){
 				countExpertCorrect += 1;
 			}
 		}
@@ -473,52 +386,33 @@ public class ComPrecision extends Composite{
 		
 	}
 	
-	private void getDiffAccuracyModel2(){
-		int docNum = 0;
-		int mapSize = ComPreprocess.docMapMap.size();
-		int countAnsCorrect = 0 ;
-		int countExpertCorrect = 0;
-		int predictAnsIndex;
-		int predictExpertIndex;
-		double[] lambda = {0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
-		int[] mu = {10, 100, 500, 1000, 2000};
-		
-		for(int a = 0; a < lambda.length; a++){
-			
-			for(int b = 0; b < mu.length; b ++){
-				
-				countAnsCorrect = 0;
-				countExpertCorrect = 0;
-				docNum = 0;
-				
-				for(int i = 1; i < mapSize + 1; i++){
-					if(!whetherMoreAns(i)){
-						continue;
-					}
-					docNum += 1;
-					predictAnsIndex = getAnsModel2(i, lambda[a], mu[b]);
-					predictExpertIndex = getExpertModel2(i, lambda[a], mu[b]);
-					if(predictAnsIndex == 0){
-						countAnsCorrect += 1;
-					}
-					if(predictExpertIndex == 0){
-						countExpertCorrect += 1;
-					}
+	
+	private void getRandomAccuracy(int type){
+		int docNum = ComPreprocess.docMapMap.size();
+//		int mapSize = ComPreprocess.docMapMap.size();
+		int ansNum;
+		double randomCorrectProb = 0.0;
+		for(Map.Entry<Integer, Map<String, String>> entry : ComPreprocess.docMapMap.entrySet()){
+			ansNum = 0;
+			for(int i = 0; i < CHILDREN2.length;i ++){
+				if(entry.getValue().get(CHILDREN2[i]).length() != 0){
+					ansNum += 1;
 				}
-				double ansAccuracy = countAnsCorrect * 1.0 / docNum;
-				double expertAccuracy = countExpertCorrect * 1.0 / docNum;
-				System.out.println("mu = " + mu[b] + "   lambda = " + lambda[a]);
-				System.out.println("Model2--推荐答案的正确率:" + ansAccuracy);
-				System.out.println("Model2--推荐专家的正确率:" + expertAccuracy);
-				
-				textAccuracyAns.append("mu = " + mu[b] + "   lambda = " + lambda[a]+ "\n");
-				textAccuracyExpert.append("mu = " + mu[b] + "   lambda = " + lambda[a]+ "\n");
-				textAccuracyAns.append("Model1--推荐答案的正确率:" + ansAccuracy + "\n"+ "\n");
-				textAccuracyExpert.append("Model2--推荐专家的正确率:" + expertAccuracy + "\n"+ "\n");
 			}
 			
+			randomCorrectProb += 1.0 * (ansNum) / (ansNum + 4);
+			
+		}
+		double randomCorrect = randomCorrectProb / docNum;
+//		System.out.println("答案多于1的问题数： " + docNum);
+		System.out.println("答案的随机正确率:" + randomCorrect);
+		textAccuracyAns.append("答案的随机正确率:" + randomCorrect+ "\n" + "\n");
+		
+		if(type != 1){
+			textAccuracyExpert.append("答案的随机正确率:" + randomCorrect+ "\n"+ "\n");
 		}
 	}
+
 	
 	/**
 	 * click the "comfirm" button and choose which the type of model
@@ -528,18 +422,21 @@ public class ComPrecision extends Composite{
 //		System.out.println(comboString);
 		if (comboString.equals(MODELTYPE[0])){
 			// do as the model 1
-			int predictIndex = getResultModel1(docIndex, 0.7, 100);
-			textPredictAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[predictIndex]));
+			int[] predictIndex = getResultModel1(docIndex);
+			textPredictAns.setText(ComPreprocess.docMapMap.get(predictIndex[0]).get(CHILDREN2[predictIndex[1]]));
+			textPredictAns.setText("问题【"+ predictIndex[0] + "】，答案【"+ predictIndex[1] + "】");
 			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
 		}
 		else if(comboString.equals(MODELTYPE[1])){
 			// do as the model 2
-			int predictAnsIndex = getAnsModel2(docIndex, 0.7, 100);
-			textPredictAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[predictAnsIndex]));
+			int[] predictAnsIndex = getAnsModel2(docIndex);
+			textPredictAns.setText(ComPreprocess.docMapMap.get(predictAnsIndex[0]).get(CHILDREN2[predictAnsIndex[1]]));
+			textPredictAns.setText("问题【"+ predictAnsIndex[0] + "】，答案【"+ predictAnsIndex[1] + "】");
 			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
 			
-			int predictExpertIndex = getExpertModel2(docIndex, 0.7, 100);
-			textPredictExpert.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN[predictExpertIndex]));
+			int[] predictExpertIndex = getExpertModel2(docIndex);
+			textPredictExpert.setText(ComPreprocess.docMapMap.get(predictExpertIndex[0]).get(CHILDREN[predictExpertIndex[1]]));
+			textPredictExpert.setText("问题【"+ predictExpertIndex[0] + "】，答案【"+ predictExpertIndex[1] + "】");
 			textOriginalExpert.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN[0]));			
 		}
 		else{
@@ -557,196 +454,104 @@ public class ComPrecision extends Composite{
 	 * @param mu		parameter {10,100,500,1000,2000}
 	 * @return the fit answer's index
 	 */
-	private int getResultModel1(int index, double lambda, int mu){
-		String segSentense;
-		String childNode;
+	private int[] getResultModel1(int index){
+//		String segSentense;
+//		String childNode;
 		String[] words;
 		int wordID;	
 		double scoreProduct, scoreSum;
-//		double sum = 0.0;
+		double sum = 0.0;
 		int k;
 		double bestAnsProb = 0.0;
-		int bestAnsI = 0;
-		int wordsNum = 0;
-		double parameter1 = 0.0;
-		double parameter2 = 0.0;
-		double paraTemp =0.0;
+		int bestDocIndex = 0;
+		int bestAnsIndex = 0;
+		int docIndex;
+		int ansIndex;
+		int[] result = new int[2];
 		
-		for(int i = 0; i < CHILDREN2.length; i++){
-			childNode = CHILDREN2[i];
-			segSentense = ComPreprocess.segDocMapMap.get(index).get(childNode);
+		ArrayList<Double> ansProbList = new ArrayList<Double>();
+		Set<int[]> hs = new HashSet<int[]>();
+		int[] indexSet = new int[2];
+		Random random = new Random();
+		int docNum = ComPreprocess.numQuestion;
+		int randomDocIndex, randomAnsIndex;
+		ArrayList<int[]> indexList = new ArrayList<int[]>();
+		
+		// random 9 random answer index 
+		while (indexList.size() < 4) {
+			randomDocIndex = random.nextInt(docNum) + 1;
+			randomAnsIndex =  random.nextInt(5);
+            if(ComPreprocess.segDocMapMap.get(randomDocIndex).get(CHILDREN2[randomAnsIndex]).length()!=0){
+            	indexSet[0] = randomDocIndex;
+            	indexSet[1] = randomAnsIndex;
+            	hs.add(indexSet);
+            	indexList.add(indexSet.clone());
+            }
+        }
+		
+		for(int i = 0; i< CHILDREN2.length; i++){
+			if(ComPreprocess.segDocMapMap.get(index).get(CHILDREN2[i]).length() != 0){
+				indexSet[0] = index;
+				indexSet[1] = i;
+				indexList.add(indexSet.clone());
+			}
+		}
+		
+		for (int i = 0; i < indexList.size(); i++){
+			String questionContent =ComPreprocess.segDocMapMap.get(index).get("问题内容");
+			words = questionContent.split(" ");
 			
-			if(segSentense.length() != 0){
-				words = segSentense.split(" ");
-				
-				scoreProduct = 0.0;
-				
-				wordsNum = words.length;
-				
-				for(String word : words){
-					if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
-						continue;
-					}
-					wordID = ComModel1.vocabularyAnswer.getId(word);
-					scoreSum = 0.0;
-					for (k = 0; k < ComModel1.topicNumAnswer; k++){
-						scoreSum += ComModel1.phiAnswer[k][wordID] * 
-								ComModel1.thetaAnswer[(index-1)*5 + i][k];
-					}
-					
-					paraTemp = maxLikelihoodWordPerDoc(word, words);
-					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp  ;					
-					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) 
-							* maxLikelihoodWordAnsdoc(ComPreprocess.segDocMapMap).get(word);
-					
-//					System.out.println(word+" , " + "wordNum:" + wordsNum);
-//					System.out.println("paraTemp: " + paraTemp);
-//					System.out.println("para1: " + parameter1);
-//					System.out.println("para2: " + parameter2);
-//					System.out.println("ldasum: " + scoreSum);
-					
-					scoreSum = Math.log(scoreSum)* (1- lambda) + Math.log(parameter1)* lambda 
-							+ Math.log(parameter2) * lambda;
-					
-					scoreProduct += scoreSum;
-					
-//					System.out.println("scoreSum: " + scoreSum);					
-					
-//					if (scoreProduct == 0.0 || scoreSum == 0.0){
-//						scoreProduct = scoreSum;
-//					}
-//					else{
-//						scoreProduct *= scoreSum;
-//					}					
+			scoreProduct = 0.0;
+			
+			
+			docIndex = indexList.get(i)[0];
+			ansIndex = indexList.get(i)[1];			
+		
+			for(String word : words){
+				if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
+					continue;
 				}
-				
-				scoreProduct *= -1.0;
-				
-				if(scoreProduct > bestAnsProb){
-					bestAnsProb = scoreProduct;
-					bestAnsI = i;
+				wordID = ComModel1.vocabularyAnswer.getId(word);
+				scoreSum = 0.0;
+				for (k = 0; k < ComModel1.topicNumAnswer; k++){
+					scoreSum += ComModel1.phiAnswer[k][wordID] * 
+							ComModel1.thetaAnswer[(docIndex-1)*5 + ansIndex][k];
 				}				
-			}
-		}
-		return bestAnsI;
-	}
-	
-	private Map<String, Integer> maxLikelihoodWordUser(Map<Integer, Map<String,String>> segDocMapMap, 
-			Map<Integer, Map<String,String>> docMapMap){
-		if(ifMapExist2 == true){
-			return wordUserMap;
-		}
-		
-		Map<String, Integer> wordUserMaxLikelihood = new HashMap<String, Integer>();
-		String user = "";
-		
-		String[] segWords;
-		int docWordsNum = 0;
-		
-		// initializing
-		for(int i = 0; i < ComModel2.userAnswer.size(); i++){
-			user = ComModel2.userAnswer.getUser(i);
-			wordUserMaxLikelihood.put(user, 0);
-		}
-		
-		for(Map.Entry<Integer, Map<String, String>> entry : segDocMapMap.entrySet()){
-			for(int i = 0 ; i < CHILDREN2.length; i ++){
-				docWordsNum = 0;
-				segWords = entry.getValue().get(CHILDREN2[i]).split("\\s");
-				docWordsNum = segWords.length;
-				user = docMapMap.get(entry.getKey()).get(CHILDREN[i]);
-				wordUserMaxLikelihood.put(user, wordUserMaxLikelihood.get(user) + docWordsNum);				
-			}
-		}
-		
-		wordUserMap = wordUserMaxLikelihood;
-		user2DocAnsMapMap = ComModel2.userAnswer.getUser2DocAnsMapMap(docMapMap);
-		
-		ifMapExist2 = true;
-		
-		return wordUserMaxLikelihood;
-	}
-	
-	private Map<String, Double> maxLikelihoodWordAnsdoc(Map<Integer, Map<String,String>> segDocMapMap){
-		if(ifMapExist == true){
-			return wordDocProb;
-		}
-		
-		Map<String, Integer> wordsCountMap = new HashMap<String, Integer>();
-		Map<String, Double> wordsDocMaxLikelihood = new HashMap<String, Double>();
-		String word = "";
-		int vocabularySize = 0;
-		int totalWordsNum = 0; 
-		String[] segWords;
-		vocabularySize = ComModel1.vocabularyAnswer.size();
-		
-		// initializing
-		for(int i = 0; i < vocabularySize; i ++){
-			word = ComModel1.vocabularyAnswer.getWord(i);
-			wordsCountMap.put(word, 0);
-		}
-		
-		for(Map.Entry<Integer, Map<String, String>> entry : segDocMapMap.entrySet()){
-			for(int i = 0 ; i < CHILDREN2.length; i ++){
-				segWords = entry.getValue().get(CHILDREN2[i]).split("\\s");
-				totalWordsNum += segWords.length;
-				for(String segWord : segWords){
-					if(wordsCountMap.get(segWord) != null){
-						wordsCountMap.put(segWord, wordsCountMap.get(segWord)+1);
-					}
-				}
-			}
-		}
-		
-		for(Map.Entry<String, Integer> entry : wordsCountMap.entrySet()){
-			wordsDocMaxLikelihood.put(entry.getKey(), entry.getValue() * 1.0 / totalWordsNum);
-		}
-		
-		wordDocProb = wordsDocMaxLikelihood;
-		ifMapExist = true;
-		
-		return wordsDocMaxLikelihood;
-	}
-	
-	private double maxLikelihoodWordPerUser(String word, String user){
-		double maxLikelihoodProb;
-		int userID;
-		int wordCount = 0;
-		userID = ComModel2.userAnswer.getId(user);
-		String segSentense;
-		String[] segWords;
-		
-		Map<Integer, Integer> userDocMap = user2DocAnsMapMap.get(userID);
-		for(Map.Entry<Integer, Integer> entry : userDocMap.entrySet()){
-			segSentense = ComPreprocess.segDocMapMap.get(entry.getKey()).
-					get(CHILDREN2[entry.getValue()]);
-			segWords = segSentense.split(" ");
-			for(String segWord : segWords){
-				if(segWord.equals(word)){
-					wordCount += 1;
-				}
-			}
-		}
-		maxLikelihoodProb = wordCount * 1.0 / maxLikelihoodWordUser(ComPreprocess.segDocMapMap, 
-				ComPreprocess.docMapMap).get(user);;
 				
-		return maxLikelihoodProb;
-	}
-	
-	private double maxLikelihoodWordPerDoc(String word, String[] sentense){
-		double maxLikelihoodProb;
-		int sentenseLength = sentense.length;
-		int wordCount = 0;
-		
-		for(String temp : sentense){
-			if(word.equals(temp) ){
-				wordCount += 1;
+				if (scoreProduct == 0.0 || scoreSum == 0.0){
+					scoreProduct = scoreSum;
+				}
+				else{
+					scoreProduct *= scoreSum;
+				}			
+				
 			}
+			
+			sum += scoreProduct;
+							
+			ansProbList.add(scoreProduct);
+			
+			if(scoreProduct > bestAnsProb){
+				bestAnsProb = scoreProduct;
+				bestDocIndex = indexList.get(i)[0];
+				bestAnsIndex = indexList.get(i)[1];
+			}
+			
 		}
+			
 		
-		maxLikelihoodProb = wordCount * 1.0 / sentenseLength;
+		int temp;
+		for(int j = 0; j < ansProbList.size();j ++){
+			temp = j + 1;
+			System.out.println("文档【"+ index + "】回答【"+ temp +"】概率：" + ansProbList.get(j) * 1.0 / sum);
+		}
+		System.out.println("最佳：" + "文档"+ bestDocIndex + ",回答"+ bestAnsIndex + ",概率："+ bestAnsProb * 1.0 / sum + "\n");
 		
-		return maxLikelihoodProb;
+		result[0] = bestDocIndex;
+		result[1] = bestAnsIndex;
+		
+		return result;
+		
 	}
 	
 	
@@ -757,147 +562,218 @@ public class ComPrecision extends Composite{
 	 * @param mu
 	 * @return
 	 */
-	private int getAnsModel2(int index, double lambda, int mu){
-		String segSentense;
-		String childNode;
+	private int[] getAnsModel2(int index){
 		String[] words;
 		int wordID;	
 		double scoreProduct, scoreSum, scorePhiThetaProduct, scorePhiSum;
-//		double sum = 0.0;
+		double sum = 0.0;
 		int k, x;
 		double bestAnsProb = 0.0;
-		int bestAnsI = 0;
-		int wordsNum = 0;
-		double parameter1 = 0.0;
-		double parameter2 = 0.0;
-		double paraTemp =0.0;
+		int bestDocIndex = 0;
+		int bestAnsIndex = 0;
+		int docIndex;
+		int ansIndex;
+		int[] result = new int[2];
 		
-		for(int i = 0; i < CHILDREN2.length; i++){
-			childNode = CHILDREN2[i];
-			segSentense = ComPreprocess.segDocMapMap.get(index).get(childNode);
-			
-			if(segSentense.length() != 0){
-				words = segSentense.split(" ");
-				
-				scoreProduct = 0.0;
-				
-				wordsNum = words.length;
-				
-				for(String word : words){
-					if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
-						continue;
-					}
-					wordID = ComModel2.vocabularyAnswer.getId(word);
-					scoreSum = 0.0;
-					
-					for (k = 0; k < ComModel2.topicNumAnswer; k++){
-						scorePhiThetaProduct = 0.0;
-						
-						scorePhiSum = 0.0;
-						for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
-							scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
-						}
-						scorePhiThetaProduct = scorePhiSum * 
-								ComModel2.thetaAnswer[(index - 1) * 5 + i][k];
-						
-						scoreSum +=  scorePhiThetaProduct;	
-					}
-					
-					paraTemp = maxLikelihoodWordPerDoc(word, words);
-					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp  ;					
-					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) 
-							* maxLikelihoodWordAnsdoc(ComPreprocess.segDocMapMap).get(word);
-					
-					scoreSum = Math.log(scoreSum)* (1- lambda) + Math.log(parameter1)* lambda 
-							+ Math.log(parameter2) * lambda;					
-					
-					scoreProduct += scoreSum;			
-				}
-				scoreProduct *= -1.0;
-				if(scoreProduct > bestAnsProb){
-					bestAnsProb = scoreProduct;
-					bestAnsI = i;
-				}	
+		ArrayList<Double> ansProbList = new ArrayList<Double>();
+		Set<int[]> hs = new HashSet<int[]>();
+		int[] indexSet = new int[2];
+		Random random = new Random();
+		int docNum = ComPreprocess.numQuestion;
+		int randomDocIndex, randomAnsIndex;
+		ArrayList<int[]> indexList = new ArrayList<int[]>();
+		
+		// random 9 random answer index 
+		while (indexList.size() < 4) {
+			randomDocIndex = random.nextInt(docNum) + 1;
+			randomAnsIndex =  random.nextInt(5);
+            if(ComPreprocess.segDocMapMap.get(randomDocIndex).get(CHILDREN2[randomAnsIndex]).length()!=0){
+            	indexSet[0] = randomDocIndex;
+            	indexSet[1] = randomAnsIndex;
+            	hs.add(indexSet);
+            	indexList.add(indexSet.clone());
+            }
+        }
+		
+		for(int i = 0; i< CHILDREN2.length; i++){
+			if(ComPreprocess.segDocMapMap.get(index).get(CHILDREN2[i]).length() != 0){
+				indexSet[0] = index;
+				indexSet[1] = i;
+				indexList.add(indexSet.clone());
 			}
 		}
 		
-		return bestAnsI;
+		String questionContent =ComPreprocess.segDocMapMap.get(index).get("问题内容");
+		words = questionContent.split(" ");
+		
+		for (int i = 0; i < indexList.size(); i++){
+			
+			scoreProduct = 0.0;
+						
+			docIndex = indexList.get(i)[0];
+			ansIndex = indexList.get(i)[1];
+			
+			for(String word : words){
+				if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+					continue;
+				}
+				wordID = ComModel2.vocabularyAnswer.getId(word);
+				scoreSum = 0.0;
+				
+				for (k = 0; k < ComModel2.topicNumAnswer; k++){
+					scorePhiThetaProduct = 0.0;
+					
+					scorePhiSum = 0.0;
+					for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+						scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+					}
+					scorePhiThetaProduct = scorePhiSum * 
+							ComModel2.thetaAnswer[(docIndex - 1) * 5 + ansIndex][k];
+					
+					scoreSum +=  scorePhiThetaProduct;	
+				}
+				
+				if (scoreProduct == 0.0 || scoreSum == 0.0){
+					scoreProduct = scoreSum;
+				}
+				else{
+					scoreProduct *= scoreSum;
+				}	
+			}
+			sum += scoreProduct;
+			
+			ansProbList.add(scoreProduct);
+			
+			if(scoreProduct > bestAnsProb){
+				bestAnsProb = scoreProduct;
+				bestDocIndex = indexList.get(i)[0];
+				bestAnsIndex = indexList.get(i)[1];
+			}			
+		}
+		
+		int temp;
+		for(int j = 0; j < ansProbList.size();j ++){
+			temp = j + 1;
+			System.out.println("文档【"+ index + "】回答【"+ temp +"】概率：" + ansProbList.get(j) * 1.0 / sum);
+		}
+		System.out.println("最佳：" + "文档"+ bestDocIndex + ",回答"+ bestAnsIndex + ",概率："+ bestAnsProb * 1.0 / sum + "\n");
+		
+		result[0] = bestDocIndex;
+		result[1] = bestAnsIndex;
+		
+		return result;
 	}
 	
-	private int getExpertModel2(int index, double lambda, int mu){
-		String segSentense;
-		String childNode, childNode2;
+	private int[] getExpertModel2(int index){
+//		String segSentense;
+//		String childNode, childNode2;
 		String[] words;
 		int wordID;	
 		double scoreProduct, scoreSum, scorePhiPsiProduct, scorePhiSum;
-//		double sum = 0.0;
+		double sum = 0.0;
 		int k, x;
 		double bestExpertProb = 0.0;
-		int bestAnsI = 0;
-		int wordsNum = 0;
-		double parameter1 = 0.0;
-		double parameter2 = 0.0;
-		double paraTemp =0.0;
+		int bestDocIndex = 0;
+		int bestAnsIndex = 0;
+		int docIndex;
+		int ansIndex;
+		int[] result = new int[2];
+		
+		ArrayList<Double> ansProbList = new ArrayList<Double>();
+		Set<int[]> hs = new HashSet<int[]>();
+		int[] indexSet = new int[2];
+		Random random = new Random();
+		int docNum = ComPreprocess.numQuestion;
+		int randomDocIndex, randomAnsIndex;
+		ArrayList<int[]> indexList = new ArrayList<int[]>();
+		
 		String userName;
 		int u; 
 		
-		for(int i = 0; i < CHILDREN2.length; i++){
-			childNode = CHILDREN2[i];
-			childNode2 = CHILDREN[i];
-			segSentense = ComPreprocess.segDocMapMap.get(index).get(childNode);
-			userName = ComPreprocess.docMapMap.get(index).get(childNode2);
-			u = ComModel2.userAnswer.getId(userName);
-			
-			if(segSentense.length() != 0){
-				words = segSentense.split(" ");
-				
-				scoreProduct = 0.0;
-				
-//				wordsNum = words.length;
-				wordsNum = maxLikelihoodWordUser(ComPreprocess.segDocMapMap, 
-						ComPreprocess.docMapMap).get(userName);
-				
-				for(String word : words){
-					if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
-						continue;
-					}
-					wordID = ComModel2.vocabularyAnswer.getId(word);
-					scoreSum = 0.0;
-					
-					for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
-						
-						scorePhiPsiProduct = 0.0;						
-						scorePhiSum = 0.0;
-						
-						for(k = 0; k < ComModel2.topicNumAnswer; k ++){
-							scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
-						}
-						
-						scorePhiPsiProduct = scorePhiSum * ComModel2.psiAnswer[u][x];
-						scoreSum +=  scorePhiPsiProduct;						
-					}
-					
-					paraTemp = maxLikelihoodWordPerUser(word, userName);
-					parameter1 = 1.0 * wordsNum / (mu + wordsNum) * paraTemp;					
-					parameter2 = 1.0 * (1 - wordsNum / (mu + wordsNum)) 
-							* maxLikelihoodWordAnsdoc(ComPreprocess.segDocMapMap).get(word);
-					
-					scoreSum = Math.log(scoreSum)* (1- lambda) + Math.log(parameter1)* lambda 
-							+ Math.log(parameter2) * lambda;
-					
-					
-					scoreProduct += scoreSum;
-				}
-				scoreProduct *= -1.0;
-				if(scoreProduct > bestExpertProb){
-					bestExpertProb = scoreProduct;
-					bestAnsI = i;
-				}	
-			}
+		while (indexList.size() < 4) {
+			randomDocIndex = random.nextInt(docNum) + 1;
+			randomAnsIndex =  random.nextInt(5);
+            if(ComPreprocess.segDocMapMap.get(randomDocIndex).get(CHILDREN2[randomAnsIndex]).length()!=0){
+            	indexSet[0] = randomDocIndex;
+            	indexSet[1] = randomAnsIndex;
+            	hs.add(indexSet);
+            	indexList.add(indexSet.clone());
+            }
+        }
 		
+		for(int i = 0; i< CHILDREN2.length; i++){
+			if(ComPreprocess.segDocMapMap.get(index).get(CHILDREN2[i]).length() != 0){
+				indexSet[0] = index;
+				indexSet[1] = i;
+				indexList.add(indexSet.clone());
+			}
 		}
 		
-		return bestAnsI;
+		String questionContent =ComPreprocess.segDocMapMap.get(index).get("问题内容");
+		words = questionContent.split(" ");
+
+		for (int i = 0; i < indexList.size(); i++){
+			
+			
+			scoreProduct = 0.0;
+						
+			docIndex = indexList.get(i)[0];
+			ansIndex = indexList.get(i)[1];
+			
+			userName = ComPreprocess.docMapMap.get(docIndex).get(CHILDREN[ansIndex]);
+			u = ComModel2.userAnswer.getId(userName);
+			
+			for(String word : words){
+				if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+					continue;
+				}
+				wordID = ComModel2.vocabularyAnswer.getId(word);
+				scoreSum = 0.0;
+				
+				for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+					
+					scorePhiPsiProduct = 0.0;						
+					scorePhiSum = 0.0;
+					
+					for(k = 0; k < ComModel2.topicNumAnswer; k ++){
+						scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+					}
+					
+					scorePhiPsiProduct = scorePhiSum * ComModel2.psiAnswer[u][x];
+					scoreSum +=  scorePhiPsiProduct;
+				}
+				
+				if (scoreProduct == 0.0 || scoreSum == 0.0){
+					scoreProduct = scoreSum;
+				}
+				else{
+					scoreProduct *= scoreSum;
+				}	
+				
+			}
+			sum += scoreProduct;
+			
+			ansProbList.add(scoreProduct);
+			
+			if(scoreProduct >= bestExpertProb){
+				bestExpertProb = scoreProduct;
+				bestDocIndex = indexList.get(i)[0];
+				bestAnsIndex = indexList.get(i)[1];
+			}			
+		}
+
+		int temp;
+		for(int j = 0; j < ansProbList.size();j ++){
+			temp = j + 1;
+			System.out.println("【专家】文档【"+ index + "】回答【"+ temp +"】概率：" + ansProbList.get(j) * 1.0 / sum);
+		}
+		System.out.println("【专家】最佳：" + "文档"+ bestDocIndex + ",回答"+ bestAnsIndex + ",概率："+ bestExpertProb * 1.0 / sum + "\n");
+		
+		result[0] = bestDocIndex;
+		result[1] = bestAnsIndex;
+		
+		return result;
+	
 	}
 	
 	
