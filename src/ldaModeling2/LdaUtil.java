@@ -31,8 +31,10 @@ public class LdaUtil {
 				Iterator<Map.Entry<Double,String>> iterator = rankMap.entrySet().iterator();
 				result[k][e] = new LinkedHashMap<String, Double>();
 				for(int i = 0; i < limit; i++){
-					Map.Entry<Double, String> entry = iterator.next();
-					result[k][e].put(entry.getValue(), entry.getKey());
+					if(iterator.hasNext()){
+						Map.Entry<Double, String> entry = iterator.next();
+						result[k][e].put(entry.getValue(), entry.getKey());
+					}
 				}				
 			}			
 		}

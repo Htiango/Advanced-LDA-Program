@@ -204,7 +204,7 @@ public class ComPrecision extends Composite{
 
 		Group groupAnswer = new Group(this, SWT.BORDER);
 		groupAnswer.setText("答案相关");
-		groupAnswer.setBounds(10,170,660,230);
+		groupAnswer.setBounds(10,160,660,230);
 		
 		Group groupPredict = new Group(groupAnswer, SWT.BORDER);
 		groupPredict.setText("匹配内容");
@@ -257,35 +257,44 @@ public class ComPrecision extends Composite{
 		
 		Label labelModelType2 = new Label(this, SWT.BORDER);
 		labelModelType2.setText("请选择 Model 类型：");
-		labelModelType2.setBounds(40, 410, 120, 20);
+		labelModelType2.setBounds(40, 390, 120, 20);
 		
 		comboModelType2 = new Combo(this, SWT.READ_ONLY);
-		comboModelType2.setBounds(40, 440, 100, 20);
+		comboModelType2.setBounds(40, 410, 100, 20);
 		comboModelType2.setItems(MODELTYPE);
 		
 		Group groupAccuracy = new Group(this, SWT.BORDER);
 		groupAccuracy.setText("正确率");
-		groupAccuracy.setBounds(170, 410, 500, 100);
+		groupAccuracy.setBounds(170, 390, 500, 120);
 		
 		Group groupAccuracyAns = new Group(groupAccuracy, SWT.BORDER);
 		groupAccuracyAns.setText("预测答案正确率：");
-		groupAccuracyAns.setBounds(5, 0, 240, 80);
+		groupAccuracyAns.setBounds(5, 0, 240, 100);
 		
 		Group groupAccuracyExpert = new Group(groupAccuracy, SWT.BORDER);
 		groupAccuracyExpert.setText("预测专家正确率：");
-		groupAccuracyExpert.setBounds(250, 0, 240, 80);
+		groupAccuracyExpert.setBounds(250, 0, 240, 100);
 		
 		textAccuracyAns = new Text(groupAccuracyAns, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
-		textAccuracyAns.setBounds(5, 3, 225, 55);
+		textAccuracyAns.setBounds(5, 3, 225, 75);
 		textAccuracyAns.setBackground(new Color(null,230,230,230));
 		
 		textAccuracyExpert = new Text(groupAccuracyExpert, SWT.BORDER | SWT.READ_ONLY |SWT.V_SCROLL | SWT.WRAP);
-		textAccuracyExpert.setBounds(5, 3, 225, 55);
+		textAccuracyExpert.setBounds(5, 3, 225, 75);
 		textAccuracyExpert.setBackground(new Color(null,230,230,230));
 		
+		Button buttonGetAdaptedAccuracy = new Button(this, SWT.BORDER);
+		buttonGetAdaptedAccuracy.setText("获取采纳答案正确率");
+		buttonGetAdaptedAccuracy.setBounds(25,440, 140, 35);
+		buttonGetAdaptedAccuracy.addSelectionListener(new SelectionAdapter(){
+        	public void widgetSelected(SelectionEvent e){
+        		getAdaptedAccuracy();
+        	}
+        });
+		
 		Button buttonGetAccuracy = new Button(this, SWT.BORDER);
-		buttonGetAccuracy.setText("获取正确率");
-		buttonGetAccuracy.setBounds(40,470, 100, 35);
+		buttonGetAccuracy.setText("获取随机答案正确率");
+		buttonGetAccuracy.setBounds(25,480, 140, 35);
 		buttonGetAccuracy.addSelectionListener(new SelectionAdapter(){
         	public void widgetSelected(SelectionEvent e){
         		getAccuracy();
@@ -308,6 +317,105 @@ public class ComPrecision extends Composite{
 //		double[][] test = ComModel1.thetaAnswer;
 //		System.out.println("thetaAnswer size:" + test.length);		
 //	}
+	
+	private void getAdaptedAccuracy(){
+		textAccuracyAns.setText("");
+		textAccuracyExpert.setText("");
+		String comboString = comboModelType2.getText();
+		int type = 0;
+		if (comboString.equals(MODELTYPE[0])){
+			// do as the model 1
+			type = 1;
+			getAdaptedAccuracyModel1();
+			getAdaptedRandomAccuracy(type);
+//			getDiffAccuracyModel1();
+		}
+		else if(comboString.equals(MODELTYPE[1])){
+			// do as the model 2
+			type = 2;
+			getAdaptedAccuracyModel2();
+			getAdaptedRandomAccuracy(type);
+//			getDiffAccuracyModel2();
+		}
+		else{
+			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
+			messagebox.setText("Error");
+			messagebox.setMessage("请先选择 Model 类型!");
+			messagebox.open();					
+		}
+	}
+	
+	private void getAdaptedAccuracyModel1(){
+		int mapSize = ComPreprocess.docMapMap.size();
+		int docNum = 0;
+		int countCorrect = 0 ;
+		int predictIndex;
+		for(int i = 1; i < mapSize + 1; i++){
+			
+			if(getAnswerNum(i) == 1){
+				continue;
+			}
+			docNum += 1;
+			
+			predictIndex = getAdaptedResultModel1(i);
+			if(predictIndex == 0){
+				countCorrect += 1;
+			}
+		}
+		double accuracy = countCorrect * 1.0 / docNum;
+		System.out.println("答案多于1的文档数"+docNum);
+		System.out.println("Model1【采纳】--推荐答案的正确率:" + accuracy);
+		textAccuracyAns.setText("Model1【采纳】--推荐答案的正确率:" + accuracy + "\n"+ "\n");
+	}
+	
+	private void getAdaptedAccuracyModel2(){
+		int docNum = 0;
+		int mapSize = ComPreprocess.docMapMap.size();
+		int countAnsCorrect = 0 ;
+		int countExpertCorrect = 0;
+		int predictAnsIndex;
+		int predictExpertIndex;
+		ArrayList<Integer> goodIndex = new ArrayList<Integer>();
+		ArrayList<Integer> secondGoodIndex = new ArrayList<Integer>();
+		ArrayList<Integer> secondGoodAnsIndex = new ArrayList<Integer>();
+		for(int i = 1; i < mapSize + 1; i++){
+			
+			if(getAnswerNum(i) == 1){
+				continue;
+			}
+			docNum += 1;
+			
+			predictAnsIndex = getAdaptedResultModel2(i);
+			predictExpertIndex = getAdaptedExpertModel2(i);
+			if(predictAnsIndex == 0){
+				countAnsCorrect += 1;
+			}
+			if(predictExpertIndex == 0){
+				countExpertCorrect += 1;
+			}
+			if(predictAnsIndex == 0 && predictExpertIndex == 0){
+				goodIndex.add(i);
+			}
+			if(predictAnsIndex == predictExpertIndex && predictExpertIndex != 0){
+				secondGoodIndex.add(i);
+				secondGoodAnsIndex.add(predictAnsIndex);
+			}
+		}
+		System.out.println("答案多于1的文档数"+docNum);
+		double ansAccuracy = countAnsCorrect * 1.0 / docNum;
+		double expertAccuracy = countExpertCorrect * 1.0 / docNum;
+		System.out.println("Model2【采纳】--推荐答案的正确率:" + ansAccuracy);
+		System.out.println("Model2【采纳】--推荐专家的正确率:" + expertAccuracy);
+		
+//		for(int i = 0; i < secondGoodIndex.size(); i ++){
+//			System.out.println(secondGoodIndex.get(i) + ", " +secondGoodAnsIndex.get(i));
+//		}
+		
+		textAccuracyAns.setText("Model2【采纳】--推荐答案的正确率:" + ansAccuracy+ "\n"+ "\n");
+		textAccuracyExpert.setText("Model2【采纳】--推荐专家的正确率:" + expertAccuracy+ "\n"+ "\n");
+		
+	}
+	
 	
 	/**
 	 * click the accuracy button and get the accuracy
@@ -354,8 +462,8 @@ public class ComPrecision extends Composite{
 			}
 		}
 		double accuracy = countCorrect * 1.0 / docNum;
-		System.out.println("Model1--推荐答案的正确率:" + accuracy);
-		textAccuracyAns.setText("Model1--推荐答案的正确率:" + accuracy + "\n"+ "\n");
+		System.out.println("Model1【随机】--推荐答案的正确率:" + accuracy);
+		textAccuracyAns.setText("Model1【随机】--推荐答案的正确率:" + accuracy + "\n"+ "\n");
 	}
 	
 	private void getAccuracyModel2(){
@@ -378,14 +486,35 @@ public class ComPrecision extends Composite{
 		
 		double ansAccuracy = countAnsCorrect * 1.0 / docNum;
 		double expertAccuracy = countExpertCorrect * 1.0 / docNum;
-		System.out.println("Model2--推荐答案的正确率:" + ansAccuracy);
-		System.out.println("Model2--推荐专家的正确率:" + expertAccuracy);
+		System.out.println("Model2【随机】--推荐答案的正确率:" + ansAccuracy);
+		System.out.println("Model2【随机】--推荐专家的正确率:" + expertAccuracy);
 		
-		textAccuracyAns.setText("Model1--推荐答案的正确率:" + ansAccuracy+ "\n"+ "\n");
-		textAccuracyExpert.setText("Model2--推荐专家的正确率:" + expertAccuracy+ "\n"+ "\n");
+		textAccuracyAns.setText("Model1【随机】--推荐答案的正确率:" + ansAccuracy+ "\n"+ "\n");
+		textAccuracyExpert.setText("Model2【随机】--推荐专家的正确率:" + expertAccuracy+ "\n"+ "\n");
 		
 	}
 	
+	
+	private void getAdaptedRandomAccuracy(int type){
+//		int mapSize = ComPreprocess.docMapMap.size();
+		int docNum = 0; 
+		int ansNum;
+		double randomCorrectProb = 0.0;
+		for(Map.Entry<Integer, Map<String, String>> entry : ComPreprocess.docMapMap.entrySet()){
+			
+			ansNum = getAnsNum(entry.getKey());
+			if(ansNum > 1){
+				docNum += 1;
+				randomCorrectProb += 1.0 / ansNum ;
+			}
+		}
+		double randomCorrect = 1.0 * randomCorrectProb / docNum;
+		System.out.println("答案的随机正确率:" + randomCorrect);
+		textAccuracyAns.append("答案的随机正确率:" + randomCorrect+ "\n" + "\n");
+		if(type != 1){
+			textAccuracyExpert.append("答案的随机正确率:" + randomCorrect+ "\n"+ "\n");
+		}
+	}
 	
 	private void getRandomAccuracy(int type){
 		int docNum = ComPreprocess.docMapMap.size();
@@ -412,6 +541,17 @@ public class ComPrecision extends Composite{
 			textAccuracyExpert.append("答案的随机正确率:" + randomCorrect+ "\n"+ "\n");
 		}
 	}
+	
+	
+	private int getAnsNum(int index){
+		int count = 0; 
+		for(int i = 0; i < CHILDREN2.length; i ++){
+			if(ComPreprocess.docMapMap.get(index).get(CHILDREN2[i]).length() != 0){
+				count += 1;
+			}
+		}
+		return count;
+	}
 
 	
 	/**
@@ -422,22 +562,38 @@ public class ComPrecision extends Composite{
 //		System.out.println(comboString);
 		if (comboString.equals(MODELTYPE[0])){
 			// do as the model 1
-			int[] predictIndex = getResultModel1(docIndex);
-			textPredictAns.setText(ComPreprocess.docMapMap.get(predictIndex[0]).get(CHILDREN2[predictIndex[1]]));
-			textPredictAns.setText("问题【"+ predictIndex[0] + "】，答案【"+ predictIndex[1] + "】");
+//			int[] predictIndex = getResultModel1(docIndex);
+//			textPredictAns.setText(ComPreprocess.docMapMap.get(predictIndex[0]).get(CHILDREN2[predictIndex[1]]));
+//			textPredictAns.setText("问题【"+ predictIndex[0] + "】，答案【"+ predictIndex[1] + "】");
+//			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
+			int predictIndex = getAdaptedResultModel1(docIndex);
+			textPredictAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[predictIndex]));
+			textPredictAns.append("问题【"+ docIndex + "】，答案【"+ predictIndex + "】");
 			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
+			
 		}
 		else if(comboString.equals(MODELTYPE[1])){
 			// do as the model 2
-			int[] predictAnsIndex = getAnsModel2(docIndex);
-			textPredictAns.setText(ComPreprocess.docMapMap.get(predictAnsIndex[0]).get(CHILDREN2[predictAnsIndex[1]]));
-			textPredictAns.setText("问题【"+ predictAnsIndex[0] + "】，答案【"+ predictAnsIndex[1] + "】");
+//			int[] predictAnsIndex = getAnsModel2(docIndex);
+//			textPredictAns.setText(ComPreprocess.docMapMap.get(predictAnsIndex[0]).get(CHILDREN2[predictAnsIndex[1]]));
+//			textPredictAns.setText("问题【"+ predictAnsIndex[0] + "】，答案【"+ predictAnsIndex[1] + "】");
+//			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
+//			
+//			int[] predictExpertIndex = getExpertModel2(docIndex);
+//			textPredictExpert.setText(ComPreprocess.docMapMap.get(predictExpertIndex[0]).get(CHILDREN[predictExpertIndex[1]]));
+//			textPredictExpert.setText("问题【"+ predictExpertIndex[0] + "】，答案【"+ predictExpertIndex[1] + "】");
+//			textOriginalExpert.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN[0]));	
+			
+			int predictAnsIndex = getAdaptedResultModel2(docIndex);
+			textPredictAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[predictAnsIndex]));
+			textPredictAns.append("\n问题【"+ docIndex + "】，答案【"+ predictAnsIndex + "】");
 			textOriginalAns.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN2[0]));
 			
-			int[] predictExpertIndex = getExpertModel2(docIndex);
-			textPredictExpert.setText(ComPreprocess.docMapMap.get(predictExpertIndex[0]).get(CHILDREN[predictExpertIndex[1]]));
-			textPredictExpert.setText("问题【"+ predictExpertIndex[0] + "】，答案【"+ predictExpertIndex[1] + "】");
-			textOriginalExpert.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN[0]));			
+			int predictExpertIndex = getAdaptedExpertModel2(docIndex);
+			textPredictExpert.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN[predictExpertIndex]));
+			textPredictExpert.append("\n问题【"+ docIndex + "】，答案【"+ predictExpertIndex + "】");
+			textOriginalExpert.setText(ComPreprocess.docMapMap.get(docIndex).get(CHILDREN[0]));	
+			
 		}
 		else{
 			MessageBox messagebox=new MessageBox(getShell(),SWT.YES|SWT.ICON_ERROR);
@@ -776,6 +932,186 @@ public class ComPrecision extends Composite{
 	
 	}
 	
+	private int getAdaptedResultModel1(int index){
+//		String segSentense;
+//		String childNode;
+		String[] words;
+		int wordID;	
+		double scoreProduct, scoreSum;
+		double sum = 0.0;
+		int k;
+		double bestAnsProb = 0.0;
+		int bestAnsIndex = 0;
+	
+		String questionContent =ComPreprocess.segDocMapMap.get(index).get("问题内容");
+		words = questionContent.split(" ");
+		
+		for(int i = 0 ; i < CHILDREN2.length; i ++){
+			scoreProduct = 0.0;
+			if (ComPreprocess.docMapMap.get(index).get(CHILDREN2[i]).length() != 0){
+				for(String word : words){
+					if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
+						continue;
+					}
+					wordID = ComModel1.vocabularyAnswer.getId(word);
+					scoreSum = 0.0;
+					for (k = 0; k < ComModel1.topicNumAnswer; k++){
+						scoreSum += ComModel1.phiAnswer[k][wordID] * 
+								ComModel1.thetaAnswer[(index-1)*5 + i][k];
+					}				
+					
+					if (scoreProduct == 0.0 || scoreSum == 0.0){
+						scoreProduct = scoreSum;
+					}
+					else{
+						scoreProduct *= scoreSum;
+					}			
+					
+				}
+				
+				sum += scoreProduct;
+				
+				if(scoreProduct > bestAnsProb){
+					bestAnsProb = scoreProduct;
+					
+					bestAnsIndex = i;
+				}
+
+			}
+		}
+		
+		System.out.println("最佳回答："+ bestAnsIndex + ",概率："+ bestAnsProb * 1.0 / sum + "\n");
+		
+		return bestAnsIndex;
+		
+	}
+		
+	private int getAdaptedResultModel2(int index){
+		String[] words;
+		int wordID;	
+		double scoreProduct, scoreSum, scorePhiThetaProduct, scorePhiSum;
+		double sum = 0.0;
+		int k, x;
+		double bestAnsProb = 0.0;
+		int bestAnsIndex = 0;
+		
+		String questionContent =ComPreprocess.segDocMapMap.get(index).get("问题内容");
+		words = questionContent.split(" ");
+		
+		for(int i = 0; i< CHILDREN2.length; i++){
+			
+			if(ComPreprocess.docMapMap.get(index).get(CHILDREN2[i]).length() != 0){
+				scoreProduct = 0.0;
+				
+				for(String word : words){
+					if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+						continue;
+					}
+					wordID = ComModel2.vocabularyAnswer.getId(word);
+					scoreSum = 0.0;
+					
+					for (k = 0; k < ComModel2.topicNumAnswer; k++){
+						scorePhiThetaProduct = 0.0;
+						
+						scorePhiSum = 0.0;
+						for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+							scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+						}
+						scorePhiThetaProduct = scorePhiSum * 
+								ComModel2.thetaAnswer[(index - 1) * 5 + i][k];
+						
+						scoreSum +=  scorePhiThetaProduct;	
+					}
+					
+					if (scoreProduct == 0.0 || scoreSum == 0.0){
+						scoreProduct = scoreSum;
+					}
+					else{
+						scoreProduct *= scoreSum;
+					}	
+					
+				}
+				sum += scoreProduct;
+				
+				if(scoreProduct > bestAnsProb){
+					bestAnsProb = scoreProduct;
+					bestAnsIndex = i;
+				}			
+			}
+		}
+	
+		System.out.println("最佳回答："+ bestAnsIndex + ",概率："+ bestAnsProb * 1.0 / sum + "\n");
+		
+		
+		return bestAnsIndex;
+	}
+	
+	private int getAdaptedExpertModel2(int index){
+		String[] words;
+		int wordID;	
+		double scoreProduct, scoreSum, scorePhiPsiProduct, scorePhiSum;
+		double sum = 0.0;
+		int k, x;
+		double bestExpertProb = 0.0;
+		int bestAnsIndex = 0;
+		
+		String userName; 
+		int u;
+		
+		String questionContent =ComPreprocess.segDocMapMap.get(index).get("问题内容");
+		words = questionContent.split(" ");
+		
+		for(int i = 0; i< CHILDREN2.length; i++){
+			
+			if(ComPreprocess.docMapMap.get(index).get(CHILDREN2[i]).length() != 0){
+				scoreProduct = 0.0;
+				userName = ComPreprocess.docMapMap.get(index).get(CHILDREN[i]);
+				u = ComModel2.userAnswer.getId(userName);
+				
+				for(String word : words){
+					if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+						continue;
+					}
+					wordID = ComModel2.vocabularyAnswer.getId(word);
+					scoreSum = 0.0;
+					
+					for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+						
+						scorePhiPsiProduct = 0.0;						
+						scorePhiSum = 0.0;
+						
+						for(k = 0; k < ComModel2.topicNumAnswer; k ++){
+							scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+						}
+						
+						scorePhiPsiProduct = scorePhiSum * ComModel2.psiAnswer[u][x];
+						scoreSum +=  scorePhiPsiProduct;
+					}
+					
+					if (scoreProduct == 0.0 || scoreSum == 0.0){
+						scoreProduct = scoreSum;
+					}
+					else{
+						scoreProduct *= scoreSum;
+					}
+				}
+				
+				sum += scoreProduct;
+				
+				
+				if(scoreProduct >= bestExpertProb){
+					bestExpertProb = scoreProduct;
+					bestAnsIndex = i;
+				}			
+				
+			}
+		}
+		
+		
+		System.out.println("【专家】最佳回答："+ bestAnsIndex + ",概率："+ bestExpertProb * 1.0 / sum + "\n");
+		
+		return bestAnsIndex;
+	}
 	
 	/**
 	 * update the doc index label
@@ -862,7 +1198,7 @@ public class ComPrecision extends Composite{
 		int numAnswer = 0;
 		for (int i = 0; i < CHILDREN2.length; i++){
 			childText = CHILDREN2[i];
-			childContent = ComPreprocess.docMapMap.get(docIndex).get(childText);
+			childContent = ComPreprocess.docMapMap.get(questionIndex).get(childText);
 			if (childContent.length() != 0){
 				numAnswer += 1;
 			}
