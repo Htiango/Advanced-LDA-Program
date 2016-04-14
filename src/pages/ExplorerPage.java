@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.TabItem;
 
+import tabPages.ComEvaluation;
 import tabPages.ComLdaModeling;
 import tabPages.ComPrecision;
 import tabPages.ComPrediction;
@@ -65,10 +66,14 @@ public class ExplorerPage {
 		Composite compositePrediction = new ComPrediction(shell,tabFolderExplorer, SWT.NONE);
 		tbtmPrediction.setControl(compositePrediction);
 		
-		TabItem tbtmPrecision = new TabItem(tabFolderExplorer, SWT.NONE);
-		tbtmPrecision.setText("    Precision    ");
-		Composite compositePrecision = new ComPrecision(shell,tabFolderExplorer, SWT.NONE);
-		tbtmPrecision.setControl(compositePrecision);
+//		TabItem tbtmPrecision = new TabItem(tabFolderExplorer, SWT.NONE);
+//		tbtmPrecision.setText("    Precision    ");
+//		Composite compositePrecision = new ComPrecision(shell,tabFolderExplorer, SWT.NONE);
+//		tbtmPrecision.setControl(compositePrecision);
 
+		TabItem tbtmEvaluation = new TabItem(tabFolderExplorer, SWT.NONE);
+		tbtmEvaluation.setText("    Evaluation    ");
+		Composite compositeEvaluation = new ComEvaluation(shell,tabFolderExplorer, SWT.NONE);
+		tbtmEvaluation.setControl(compositeEvaluation);
 	}
 }

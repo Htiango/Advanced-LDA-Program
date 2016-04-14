@@ -44,6 +44,11 @@ public class Corpus {
 	private static String[] CHILDREN2 = 
 	    	{"回复人1姓名","回复人2姓名","回复人3姓名","回复人4姓名","回复人5姓名"};
 	
+	/**
+     * The child mode of the question content from the segged map
+     */
+    private static String CHILDREN3 = "问题内容";
+	
 	
 	public Corpus(int wordsNum, int userNum){
 		documentList = new LinkedList<int[]>();
@@ -132,20 +137,32 @@ public class Corpus {
 		for (Map.Entry<Integer, Map<String, String>>entry : segDocMapMap.entrySet())
 		{
 			Integer docIndex = entry.getKey();
-			for(int i = 0; i < CHILDREN.length;i++){
-				segSentense = entry.getValue().get(CHILDREN[i]);
+			segSentense = entry.getValue().get(CHILDREN3);
+			List<String> wordList = new LinkedList<String>();
+			
+			if (segSentense != null){
+				String[] words = segSentense.split(" ");
+				for(String word : words){
+					if (word.trim().length()<2) continue;
+					wordList.add(word);
+				}
+			}
+			corpus.addDocument(wordList);
+			
+			for(int i = 0; i < CHILDREN2.length;i++){
+				
 				String userName = docMapMap.get(docIndex).get(CHILDREN2[i]);
 				
-				List<String> wordList = new LinkedList<String>();
+//				List<String> wordList = new LinkedList<String>();
 				
-				if (segSentense != null){
-					String[] words = segSentense.split(" ");
-					for(String word : words){
-						if (word.trim().length()<2) continue;
-						wordList.add(word);
-					}
-				}
-				corpus.addDocument(wordList);
+//				if (segSentense != null){
+//					String[] words = segSentense.split(" ");
+//					for(String word : words){
+//						if (word.trim().length()<2) continue;
+//						wordList.add(word);
+//					}
+//				}
+//				corpus.addDocument(wordList);
 				corpus.addUser(userName);
 			}
 		}

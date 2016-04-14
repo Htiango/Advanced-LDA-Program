@@ -664,10 +664,10 @@ public class ComPrecision extends Composite{
 			ansIndex = indexList.get(i)[1];			
 		
 			for(String word : words){
-				if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
+				if (!ComModel1.vocabularyQuestion.ifWordExist(word)){
 					continue;
 				}
-				wordID = ComModel1.vocabularyAnswer.getId(word);
+				wordID = ComModel1.vocabularyQuestion.getId(word);
 				scoreSum = 0.0;
 				for (k = 0; k < ComModel1.topicNumAnswer; k++){
 					scoreSum += ComModel1.phiAnswer[k][wordID] * 
@@ -950,10 +950,10 @@ public class ComPrecision extends Composite{
 			scoreProduct = 0.0;
 			if (ComPreprocess.docMapMap.get(index).get(CHILDREN2[i]).length() != 0){
 				for(String word : words){
-					if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
+					if (!ComModel1.vocabularyQuestion.ifWordExist(word)){
 						continue;
 					}
-					wordID = ComModel1.vocabularyAnswer.getId(word);
+					wordID = ComModel1.vocabularyQuestion.getId(word);
 					scoreSum = 0.0;
 					for (k = 0; k < ComModel1.topicNumAnswer; k++){
 						scoreSum += ComModel1.phiAnswer[k][wordID] * 

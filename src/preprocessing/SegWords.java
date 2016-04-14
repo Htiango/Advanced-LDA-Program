@@ -1,13 +1,14 @@
 package preprocessing;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
 import edu.fudan.ml.types.Dictionary;
 import edu.fudan.nlp.cn.tag.CWSTagger;
-import edu.fudan.nlp.corpus.StopWords;
+//import edu.fudan.nlp.corpus.StopWords;
 
 public class SegWords {
 	
@@ -37,6 +38,7 @@ public class SegWords {
 		
 		try{
 			Dictionary dic = new Dictionary("./models/dict_ambiguity_disease.txt",true);
+			Dictionary stopWords = new Dictionary("./models/stopwords/StopWords.txt");
 			if (type == 0){
 				tag = new CWSTagger("./models/seg.m");
 			}
@@ -44,7 +46,7 @@ public class SegWords {
 				
 				tag = new CWSTagger("./models/seg.m", dic);
 			}
-			StopWords stopWords = new StopWords("./models/stopwords/StopWords.txt"); 
+//			StopWords stopWords = new StopWords("./models/stopwords/StopWords.txt"); 
 			
 			for (Map.Entry<Integer, Map<String,String>> entry : docMapMap.entrySet()){
 				id = entry.getKey();
@@ -54,7 +56,11 @@ public class SegWords {
 					sentense = entry.getValue().get(CHILDREN[i]);
 					segSentense = tag.tag(sentense);
 					words = segSentense.split("\\s");
-					baseWords = stopWords.phraseDel(words);
+					
+//					baseWords = stopWords.phraseDel(words);
+					baseWords = Arrays.asList(words);
+					
+					baseWords = removeStopWords(baseWords, stopWords);
 					
 					if(type == 2){
 						baseWords = removeNonDicWords(baseWords, dic);
@@ -90,11 +96,16 @@ public class SegWords {
 			
 			seg_questionContent = tag.tag(questionContent);
 			
-			StopWords stopWords = new StopWords("./models/stopwords/StopWords.txt"); 
+//			StopWords stopWords = new StopWords("./models/stopwords/StopWords.txt"); 
 	    	
 	    	String[] words = seg_questionContent.split("\\s+");		
-			result = stopWords.phraseDel(words);
-			if(type == 2){
+//			result = stopWords.phraseDel(words);
+			result = Arrays.asList(words);
+			
+			Dictionary stopWords = new Dictionary("./models/stopwords/StopWords.txt");
+			result = removeStopWords(result, stopWords);
+	    	
+	    	if(type == 2){
 				result = removeNonDicWords(result, dic);
 			}
 			
@@ -109,6 +120,17 @@ public class SegWords {
 		for(String word : baseWords){
 			boolean ifContain = dic.contains(word);
 			if( ifContain){
+				nonDicWords.add(word);
+			}
+		}
+		return nonDicWords;
+	}
+	
+	private static List<String> removeStopWords(List<String> baseWords, Dictionary dic){
+		List<String> nonDicWords = new ArrayList<String>();
+		for(String word : baseWords){
+			boolean ifContain = dic.contains(word);
+			if( !ifContain){
 				nonDicWords.add(word);
 			}
 		}

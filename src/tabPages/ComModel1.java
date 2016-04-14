@@ -40,7 +40,7 @@ public class ComModel1 extends Composite{
 	
 	public static double[][] phiAnswer;
 	
-	public static Vocabulary vocabularyAnswer;
+	public static Vocabulary vocabularyQuestion;
 	
 	public static int topicNumAnswer;
 	
@@ -152,6 +152,11 @@ public class ComModel1 extends Composite{
      */
     private static String[] CHILDREN2 = 
     	{"回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
+    
+    /**
+     * The child mode of the question content from the segged map
+     */
+    private static String CHILDREN3 = "问题内容";
     
     private static Color[] COLORTOPIC5= {SWTResourceManager.getColor(255, 0, 0), 
                                         SWTResourceManager.getColor(255, 255, 0),
@@ -416,7 +421,7 @@ public class ComModel1 extends Composite{
         
         thetaAnswer = ldaGibbsSampler.getTheta();
         phiAnswer = ldaGibbsSampler.getPhi();
-        vocabularyAnswer = corpus.getVocabulary();
+        vocabularyQuestion = corpus.getVocabulary();
         topicNumAnswer = topicNumber;
         
         removeTableTree();
@@ -485,6 +490,8 @@ public class ComModel1 extends Composite{
 		for (int i = 0; i < words.size(); i ++){
 			word = words.get(i);
 			topicIndex = getTopicIndex(word);
+			if(topicIndex == -1)
+				continue;
 			int startIndex = 0;
 	        startIndex = sentensePrint.indexOf(word, startIndex);
 	        color = COLORTOPIC[topicNumber / 5 - 1][topicIndex];
@@ -510,7 +517,9 @@ public class ComModel1 extends Composite{
 	 * @return
 	 */
 	private int getTopicIndex(String word){
-		int topicIndex = 0;		
+		int topicIndex = 0;	
+		if(!corpus.getVocabulary().ifWordExist(word))
+			return -1;
 		int id = corpus.getVocabulary().getId(word);
 		double possibilityMax = phi[topicIndex][id];
 		double possibility;
@@ -533,16 +542,26 @@ public class ComModel1 extends Composite{
 		ArrayList<String> words = new ArrayList<String>();
 		String childText;
 		String segSentense;
-		for (int i = 0; i < CHILDREN2.length; i++){
-			childText = CHILDREN2[i];
-			segSentense = ComPreprocess.segDocMapMap.get(docIndex).get(childText);
-			if (segSentense.length() != 0){
-				String[] wordsSeg = segSentense.split("\\s");
-				for (int j = 0; j < wordsSeg.length; j ++){
-					words.add(wordsSeg[j]);
-				}
+		childText  = CHILDREN3;
+		segSentense  = ComPreprocess.segDocMapMap.get(docIndex).get(childText);
+		
+		if (segSentense.length() != 0){
+			String[] wordsSeg = segSentense.split("\\s");
+			for(int j = 0; j < wordsSeg.length; j++){
+				words.add(wordsSeg[j]);
 			}
 		}
+		
+//		for (int i = 0; i < CHILDREN2.length; i++){
+//			childText = CHILDREN2[i];
+//			segSentense = ComPreprocess.segDocMapMap.get(docIndex).get(childText);
+//			if (segSentense.length() != 0){
+//				String[] wordsSeg = segSentense.split("\\s");
+//				for (int j = 0; j < wordsSeg.length; j ++){
+//					words.add(wordsSeg[j]);
+//				}
+//			}
+//		}
 		return words;
 	}
 	

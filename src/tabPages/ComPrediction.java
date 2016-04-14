@@ -79,7 +79,12 @@ public class ComPrediction extends Composite{
      */
     private static String[] CHILDREN = 
     	{"回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
-    
+
+    /**
+     * The child mode of the question content from the segged map
+     */
+    private static String CHILDREN2 = "问题内容";
+
 //    /**
 //     * the child node of the xml file 
 //     */
@@ -241,92 +246,147 @@ public class ComPrediction extends Composite{
 		System.out.println("【theta长度】"+ComModel1.thetaAnswer.length);
 		System.out.println("【theta矩阵】"+ComModel1.thetaAnswer);
 		
-		int best1AnsInteger = 0, best2AnsInteger = 0, best3AnsInteger = 0;
-		int best1AnsI = 0, best2AnsI = 0 , best3AnsI = 0;
+//		int best1AnsInteger = 0, best2AnsInteger = 0, best3AnsInteger = 0;
+		int best1AnsIndex = 0, best2AnsIndex = 0 , best3AnsIndex = 0;
 		double best1AnsProb = 0.0, best2AnsProb = 0.0, best3AnsProb = 0.0;
 		int wordID;
 		double scoreProduct, scoreSum;
 		int m = 0;
 		int k;
-		int i;
 		int w;
 		String word;
 		double sum = 0.0;
+		int docIndex = 1;
 		
 		for(Map.Entry<Integer, Map<String, String>> entry : ComPreprocess.segDocMapMap.entrySet()){
-			for( i = 0; i < CHILDREN.length; i++){
-				String segSentense = entry.getValue().get(CHILDREN[i]);
+			String segSentense = entry.getValue().get(CHILDREN2);
+			
+			docIndex = entry.getKey();
+			
+			if (segSentense.length() != 0){
+								
+				scoreProduct = 0.0;
 				
-				if (segSentense.length() != 0){
-					
-					
-					scoreProduct = 0.0;
-					
-					for (w =0; w < segQuestionWords.size(); w++){
-						word = segQuestionWords.get(w);
-						if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
-							continue;
-						}
-						wordID = ComModel1.vocabularyAnswer.getId(word);
-						scoreSum = 0.0;
-						for (k = 0; k < ComModel1.topicNumAnswer; k++){
-							scoreSum += ComModel1.phiAnswer[k][wordID] * ComModel1.thetaAnswer[m][k];
-						}
-						if (scoreProduct == 0.0 || scoreSum == 0.0){
-							scoreProduct = scoreSum;
-						}
-						else{
-							scoreProduct *= scoreSum;
-						}
-					}	
-					sum += scoreProduct;
-					
-					if(scoreProduct > best1AnsProb){
-						
-						best3AnsProb = best2AnsProb;
-						best3AnsInteger = best2AnsInteger;
-						best3AnsI = best2AnsI;
-						
-						best2AnsProb = best1AnsProb;
-						best2AnsInteger = best1AnsInteger;
-						best2AnsI = best1AnsI;
-						
-						best1AnsProb = scoreProduct;
-						best1AnsInteger = entry.getKey();
-						best1AnsI = i;
+				for (w =0; w < segQuestionWords.size(); w++){
+					word = segQuestionWords.get(w);
+					if (!ComModel1.vocabularyQuestion.ifWordExist(word)){
+						continue;
 					}
-					
-					else if(scoreProduct > best2AnsProb){
-						
-						best3AnsProb = best2AnsProb;
-						best3AnsInteger = best2AnsInteger;
-						best3AnsI = best2AnsI;
-						
-						best2AnsProb = scoreProduct;
-						best2AnsInteger = entry.getKey();
-						best2AnsI = i;
+					wordID = ComModel1.vocabularyQuestion.getId(word);
+					scoreSum = 0.0;
+					for (k = 0; k < ComModel1.topicNumAnswer; k++){
+						scoreSum += ComModel1.phiAnswer[k][wordID] * ComModel1.thetaAnswer[m][k];
 					}
+					if (scoreProduct == 0.0 || scoreSum == 0.0){
+						scoreProduct = scoreSum;
+					}
+					else{
+						scoreProduct *= scoreSum;
+					}
+				}	
+				sum += scoreProduct;
+				
+				if(scoreProduct > best1AnsProb){
 					
-					else if(scoreProduct > best3AnsProb){
-						best3AnsProb = scoreProduct;
-						best3AnsInteger = entry.getKey();
-						best3AnsI = i;
-					}					
+					best3AnsProb = best2AnsProb;
+					best3AnsIndex = best2AnsIndex;
 					
+					best2AnsProb = best1AnsProb;
+					best2AnsIndex = best1AnsIndex;
+					
+					best1AnsProb = scoreProduct;
+					best1AnsIndex = docIndex;
 				}
-				m += 1;
+				
+				else if(scoreProduct > best2AnsProb){
+					
+					best3AnsProb = best2AnsProb;
+					best3AnsIndex = best2AnsIndex;
+					
+					best2AnsProb = scoreProduct;
+					best2AnsIndex = docIndex;
+				}
+				
+				else if(scoreProduct > best3AnsProb){
+					best3AnsProb = scoreProduct;
+					best3AnsIndex = docIndex;
+				}					
+				
 			}
+			m += 1;
+//			for( i = 0; i < CHILDREN.length; i++){
+//				String segSentense = entry.getValue().get(CHILDREN[i]);
+//				
+//				if (segSentense.length() != 0){
+//					
+//					
+//					scoreProduct = 0.0;
+//					
+//					for (w =0; w < segQuestionWords.size(); w++){
+//						word = segQuestionWords.get(w);
+//						if (!ComModel1.vocabularyAnswer.ifWordExist(word)){
+//							continue;
+//						}
+//						wordID = ComModel1.vocabularyAnswer.getId(word);
+//						scoreSum = 0.0;
+//						for (k = 0; k < ComModel1.topicNumAnswer; k++){
+//							scoreSum += ComModel1.phiAnswer[k][wordID] * ComModel1.thetaAnswer[m][k];
+//						}
+//						if (scoreProduct == 0.0 || scoreSum == 0.0){
+//							scoreProduct = scoreSum;
+//						}
+//						else{
+//							scoreProduct *= scoreSum;
+//						}
+//					}	
+//					sum += scoreProduct;
+//					
+//					if(scoreProduct > best1AnsProb){
+//						
+//						best3AnsProb = best2AnsProb;
+//						best3AnsInteger = best2AnsInteger;
+//						best3AnsI = best2AnsI;
+//						
+//						best2AnsProb = best1AnsProb;
+//						best2AnsInteger = best1AnsInteger;
+//						best2AnsI = best1AnsI;
+//						
+//						best1AnsProb = scoreProduct;
+//						best1AnsInteger = entry.getKey();
+//						best1AnsI = i;
+//					}
+//					
+//					else if(scoreProduct > best2AnsProb){
+//						
+//						best3AnsProb = best2AnsProb;
+//						best3AnsInteger = best2AnsInteger;
+//						best3AnsI = best2AnsI;
+//						
+//						best2AnsProb = scoreProduct;
+//						best2AnsInteger = entry.getKey();
+//						best2AnsI = i;
+//					}
+//					
+//					else if(scoreProduct > best3AnsProb){
+//						best3AnsProb = scoreProduct;
+//						best3AnsInteger = entry.getKey();
+//						best3AnsI = i;
+//					}					
+//					
+//				}
+//				m += 1;
+//			}
 		}
 		System.out.println("总文档数(包括为空的)：" + m);
 		System.out.println("总概率：" + sum);
 		showTopicColor();
 		changeWordColor(textQuestion, SegWords.listToString(segQuestionWords));
-		printAnswer(1, ComPreprocess.docMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), 
-				ComPreprocess.segDocMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), best1AnsProb / sum, true);
-		printAnswer(2, ComPreprocess.docMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), 
-				ComPreprocess.segDocMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), best2AnsProb / sum, true);
-		printAnswer(3, ComPreprocess.docMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), 
-				ComPreprocess.segDocMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), best3AnsProb / sum, true);
+		printAnswer(1, ComPreprocess.docMapMap.get(best1AnsIndex).get(CHILDREN[0]), 
+				ComPreprocess.segDocMapMap.get(best1AnsIndex).get(CHILDREN[0]), best1AnsProb / sum, true);
+		printAnswer(2, ComPreprocess.docMapMap.get(best2AnsIndex).get(CHILDREN[0]), 
+				ComPreprocess.segDocMapMap.get(best2AnsIndex).get(CHILDREN[0]), best2AnsProb / sum, true);
+		printAnswer(3, ComPreprocess.docMapMap.get(best3AnsIndex).get(CHILDREN[0]), 
+				ComPreprocess.segDocMapMap.get(best3AnsIndex).get(CHILDREN[0]), best3AnsProb / sum, true);
 	}
 	
 	private void showTopicColor(){
@@ -363,7 +423,7 @@ public class ComPrediction extends Composite{
 			textUser3.setText(expert);
 			labelUser3Prob.setText(prob + "");
 		}
-		
+		System.out.println(expert);
 		System.out.println(prob);
 		
 	}
@@ -436,7 +496,7 @@ public class ComPrediction extends Composite{
 		Color color;
 		for (int i = 0; i < words.size(); i ++){
 			word = words.get(i);
-			if(!ComModel1.vocabularyAnswer.ifWordExist(word))
+			if(!ComModel1.vocabularyQuestion.ifWordExist(word))
 				continue;
 			topicIndex = getTopicIndex(word);
 			int startIndex = 0;
@@ -464,8 +524,10 @@ public class ComPrediction extends Composite{
 	 * @return topic index
 	 */
 	private int getTopicIndex(String word){
-		int topicIndex = 0;		
-		int id = ComModel1.vocabularyAnswer.getId(word);
+		int topicIndex = 0;	
+		if(!ComModel1.vocabularyQuestion.ifWordExist(word))
+			return -1;
+		int id = ComModel1.vocabularyQuestion.getId(word);
 		double possibilityMax = ComModel1.phiAnswer[topicIndex][id];
 		double possibility;
 		for (int i = 1 ; i < ComModel1.topicNumAnswer; i ++){
@@ -494,8 +556,8 @@ public class ComPrediction extends Composite{
 	 * @param segQuestionWords
 	 */
 	private void getAnsModel2(List<String> segQuestionWords){
-		int best1AnsInteger = 0, best2AnsInteger = 0, best3AnsInteger = 0;
-		int best1AnsI = 0, best2AnsI = 0 , best3AnsI = 0;
+//		int best1AnsInteger = 0, best2AnsInteger = 0, best3AnsInteger = 0;
+		int best1AnsIndex = 0, best2AnsIndex = 0 , best3AnsIndex = 0;
 		double best1AnsProb = 0.0, best2AnsProb = 0.0, best3AnsProb = 0.0;
 		int wordID;
 		double scoreProduct, scoreSum, scorePhiThetaProduct, scorePhiSum;
@@ -506,98 +568,173 @@ public class ComPrediction extends Composite{
 		int w;
 		String word;
 		double sum = 0.0;
+		int docIndex = 1;
 		for(Map.Entry<Integer, Map<String, String>> entry : ComPreprocess.segDocMapMap.entrySet()){
-			for( i = 0; i < CHILDREN.length; i++){
+			
+			String segSentense = entry.getValue().get(CHILDREN2);
+			docIndex = entry.getKey();
+			
+			if (segSentense.length() != 0){
+				scoreProduct = 0.0;
 				
-				String segSentense = entry.getValue().get(CHILDREN[i]);
-				
-				if (segSentense.length() != 0){
-					scoreProduct = 0.0;
-					
-					for (w =0; w < segQuestionWords.size(); w++){
-						word = segQuestionWords.get(w);
-						if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
-							continue;
-						}
-						wordID = ComModel2.vocabularyAnswer.getId(word);
-						
-						scoreSum = 0.0;
-						
-						for (k = 0; k < ComModel2.topicNumAnswer; k++){
-							
-							scorePhiThetaProduct = 0.0;
-							
-							scorePhiSum = 0.0;
-							for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
-								scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
-							}
-							scorePhiThetaProduct = scorePhiSum * ComModel2.thetaAnswer[m][k];
-							
-//							if (scorePhiThetaProduct == 0.0 || scorePhiSum == 0.0){
-//								scorePhiThetaProduct = scorePhiSum;
-//							}
-//							else{
-//								scorePhiThetaProduct *= scorePhiSum;
-//							}
-							
-							scoreSum +=  scorePhiThetaProduct;							
-						}
-						if (scoreProduct == 0.0 || scoreSum == 0.0){
-							scoreProduct = scoreSum;
-						}
-						else{
-							scoreProduct *= scoreSum;
-						}
+				for (w =0; w < segQuestionWords.size(); w++){
+					word = segQuestionWords.get(w);
+					if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+						continue;
 					}
-					sum += scoreProduct;
+					wordID = ComModel2.vocabularyAnswer.getId(word);
 					
-					if(scoreProduct > best1AnsProb){
-												
-						best3AnsProb = best2AnsProb;
-						best3AnsInteger = best2AnsInteger;
-						best3AnsI = best2AnsI;
+					scoreSum = 0.0;
+					
+					for (k = 0; k < ComModel2.topicNumAnswer; k++){
 						
-						best2AnsProb = best1AnsProb;
-						best2AnsInteger = best1AnsInteger;
-						best2AnsI = best1AnsI;
+						scorePhiThetaProduct = 0.0;
 						
-						best1AnsProb = scoreProduct;
-						best1AnsInteger = entry.getKey();
-						best1AnsI = i;
+						scorePhiSum = 0.0;
+						for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+							scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+						}
+						scorePhiThetaProduct = scorePhiSum * ComModel2.thetaAnswer[m][k];
+						
+//						if (scorePhiThetaProduct == 0.0 || scorePhiSum == 0.0){
+//							scorePhiThetaProduct = scorePhiSum;
+//						}
+//						else{
+//							scorePhiThetaProduct *= scorePhiSum;
+//						}
+						
+						scoreSum +=  scorePhiThetaProduct;							
 					}
-					
-					else if(scoreProduct > best2AnsProb){
-						
-						best3AnsProb = best2AnsProb;
-						best3AnsInteger = best2AnsInteger;
-						best3AnsI = best2AnsI;
-						
-						best2AnsProb = scoreProduct;
-						best2AnsInteger = entry.getKey();
-						best2AnsI = i;
+					if (scoreProduct == 0.0 || scoreSum == 0.0){
+						scoreProduct = scoreSum;
 					}
-					
-					else if(scoreProduct > best3AnsProb){
-						best3AnsProb = scoreProduct;
-						best3AnsInteger = entry.getKey();
-						best3AnsI = i;
-					}					
-					
+					else{
+						scoreProduct *= scoreSum;
+					}
 				}
-				m += 1;
+				sum += scoreProduct;
+				
+				if(scoreProduct > best1AnsProb){
+					
+					best3AnsProb = best2AnsProb;
+					best3AnsIndex = best2AnsIndex;
+					
+					best2AnsProb = best1AnsProb;
+					best2AnsIndex = best1AnsIndex;
+					
+					best1AnsProb = scoreProduct;
+					best1AnsIndex = docIndex;
+				}
+				
+				else if(scoreProduct > best2AnsProb){
+					
+					best3AnsProb = best2AnsProb;
+					best3AnsIndex = best2AnsIndex;
+					
+					best2AnsProb = scoreProduct;
+					best2AnsIndex = docIndex;
+				}
+				
+				else if(scoreProduct > best3AnsProb){
+					best3AnsProb = scoreProduct;
+					best3AnsIndex = docIndex;
+				}
+				
 			}
+			m += 1;
+			
+//			for( i = 0; i < CHILDREN.length; i++){
+				
+//				String segSentense = entry.getValue().get(CHILDREN[i]);
+//				
+//				if (segSentense.length() != 0){
+//					scoreProduct = 0.0;
+//					
+//					for (w =0; w < segQuestionWords.size(); w++){
+//						word = segQuestionWords.get(w);
+//						if (!ComModel2.vocabularyAnswer.ifWordExist(word)){
+//							continue;
+//						}
+//						wordID = ComModel2.vocabularyAnswer.getId(word);
+//						
+//						scoreSum = 0.0;
+//						
+//						for (k = 0; k < ComModel2.topicNumAnswer; k++){
+//							
+//							scorePhiThetaProduct = 0.0;
+//							
+//							scorePhiSum = 0.0;
+//							for (x = 0; x < ComModel2.expertiseNumAnswer; x++){
+//								scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
+//							}
+//							scorePhiThetaProduct = scorePhiSum * ComModel2.thetaAnswer[m][k];
+//							
+////							if (scorePhiThetaProduct == 0.0 || scorePhiSum == 0.0){
+////								scorePhiThetaProduct = scorePhiSum;
+////							}
+////							else{
+////								scorePhiThetaProduct *= scorePhiSum;
+////							}
+//							
+//							scoreSum +=  scorePhiThetaProduct;							
+//						}
+//						if (scoreProduct == 0.0 || scoreSum == 0.0){
+//							scoreProduct = scoreSum;
+//						}
+//						else{
+//							scoreProduct *= scoreSum;
+//						}
+//					}
+//					sum += scoreProduct;
+//					
+//					if(scoreProduct > best1AnsProb){
+//												
+//						best3AnsProb = best2AnsProb;
+//						best3AnsInteger = best2AnsInteger;
+//						best3AnsI = best2AnsI;
+//						
+//						best2AnsProb = best1AnsProb;
+//						best2AnsInteger = best1AnsInteger;
+//						best2AnsI = best1AnsI;
+//						
+//						best1AnsProb = scoreProduct;
+//						best1AnsInteger = entry.getKey();
+//						best1AnsI = i;
+//					}
+//					
+//					else if(scoreProduct > best2AnsProb){
+//						
+//						best3AnsProb = best2AnsProb;
+//						best3AnsInteger = best2AnsInteger;
+//						best3AnsI = best2AnsI;
+//						
+//						best2AnsProb = scoreProduct;
+//						best2AnsInteger = entry.getKey();
+//						best2AnsI = i;
+//					}
+//					
+//					else if(scoreProduct > best3AnsProb){
+//						best3AnsProb = scoreProduct;
+//						best3AnsInteger = entry.getKey();
+//						best3AnsI = i;
+//					}					
+//					
+//				}
+//				m += 1;
+//			}
 		}
+		
 		System.out.println("总文档数（包括为空的）：" + m);
 		System.out.println("【推荐答案】总概率：" + sum);
 		System.out.println(ComModel2.thetaAnswer.length);
 //		showTopicColor();
 //		changeWordColor(textQuestion, SegWords.listToString(segQuestionWords));
-		printAnswer(1, ComPreprocess.docMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), 
-				ComPreprocess.segDocMapMap.get(best1AnsInteger).get(CHILDREN[best1AnsI]), best1AnsProb / sum, false);
-		printAnswer(2, ComPreprocess.docMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), 
-				ComPreprocess.segDocMapMap.get(best2AnsInteger).get(CHILDREN[best2AnsI]), best2AnsProb / sum, false);
-		printAnswer(3, ComPreprocess.docMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), 
-				ComPreprocess.segDocMapMap.get(best3AnsInteger).get(CHILDREN[best3AnsI]), best3AnsProb / sum, false);
+		printAnswer(1, ComPreprocess.docMapMap.get(best1AnsIndex).get(CHILDREN[0]), 
+				ComPreprocess.segDocMapMap.get(best1AnsIndex).get(CHILDREN[0]), best1AnsProb / sum, false);
+		printAnswer(2, ComPreprocess.docMapMap.get(best2AnsIndex).get(CHILDREN[0]), 
+				ComPreprocess.segDocMapMap.get(best2AnsIndex).get(CHILDREN[0]), best2AnsProb / sum, false);
+		printAnswer(3, ComPreprocess.docMapMap.get(best3AnsIndex).get(CHILDREN[0]), 
+				ComPreprocess.segDocMapMap.get(best3AnsIndex).get(CHILDREN[0]), best3AnsProb / sum, false);
 	}
 	
 	

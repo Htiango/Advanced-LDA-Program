@@ -16,9 +16,14 @@ public class Corpus
 {
     List<int[]> documentList;
     Vocabulary vocabulary;
-    public static String[] CHILDREN = 
+    private static String[] CHILDREN = 
     	{"回复人1分析", "回复人2分析","回复人3分析","回复人4分析", "回复人5分析"};
 //    private static ArrayList<ArrayList <String>> list2;
+    
+    /**
+     * The child mode of the question content from the segged map
+     */
+    private static String CHILDREN2 = "问题内容";
 
     public Corpus(int wordsNum)
     {
@@ -74,21 +79,36 @@ public class Corpus
 
         for (Map.Entry<Integer, Map<String,String>> entry : segDocMapMap.entrySet())
         {
-        	for (int i = 0; i < CHILDREN.length; i++){
-        		segSentense = entry.getValue().get(CHILDREN[i]);        
+        	
+        	segSentense = entry.getValue().get(CHILDREN2);        
             
-	            List<String> wordList = new LinkedList<String>();
-	            if (segSentense != null)
-	            {
-	                String[] words = segSentense.split(" ");
-	                for (String word : words)
-	                {
-	                    if (word.trim().length() < 2) continue;
-	                    wordList.add(word);
-	                }
-	            }
-	            corpus.addDocument(wordList);
-        	}
+            List<String> wordList = new LinkedList<String>();
+            if (segSentense != null)
+            {
+                String[] words = segSentense.split(" ");
+                for (String word : words)
+                {
+                    if (word.trim().length() < 2) continue;
+                    wordList.add(word);
+                }
+            }
+            corpus.addDocument(wordList);
+        	
+//        	for (int i = 0; i < CHILDREN.length; i++){
+//        		segSentense = entry.getValue().get(CHILDREN[i]);        
+//            
+//	            List<String> wordList = new LinkedList<String>();
+//	            if (segSentense != null)
+//	            {
+//	                String[] words = segSentense.split(" ");
+//	                for (String word : words)
+//	                {
+//	                    if (word.trim().length() < 2) continue;
+//	                    wordList.add(word);
+//	                }
+//	            }
+//	            corpus.addDocument(wordList);
+//        	}
         }
         if (corpus.getVocabularySize() == 0) return null;
 
