@@ -757,7 +757,6 @@ public class ComPrediction extends Composite{
 		String word;
 		double sum = 0.0;
 //		int mapIndex = 0;
-		int u = 0;
 		
 //		Map<Integer, Map<String, String>> docMapMap =  ComPreprocess.docMapMap;
 //		Map<Integer, Map<String, String>> segDocMapMap =  ComPreprocess.segDocMapMap;
@@ -768,7 +767,7 @@ public class ComPrediction extends Composite{
 //		}
 		
 		for(i = 0 ; i < ComModel2.userAnswer.size(); i++){
-			
+			System.out.println("第" + (i+1) + "位专家："+ComModel2.userAnswer.getUser(i));
 			scoreProduct = 0.0;
 			
 			for (w =0; w < segQuestionWords.size(); w++){
@@ -791,7 +790,7 @@ public class ComPrediction extends Composite{
 						scorePhiSum += ComModel2.phiAnswer[k][x][wordID];
 					}
 					
-					scorePhiPsiProduct = scorePhiSum * ComModel2.psiAnswer[u][x];
+					scorePhiPsiProduct = scorePhiSum * ComModel2.psiAnswer[i][x];
 					
 					scoreSum +=  scorePhiPsiProduct;
 					
@@ -816,6 +815,8 @@ public class ComPrediction extends Composite{
 					
 				best1ExpertProb = scoreProduct;
 				best1ExpertName = ComModel2.userAnswer.getUser(i);
+				
+				System.out.println("best1， 第" + (i+1) + "位专家："+ComModel2.userAnswer.getUser(i));
 			}
 			
 			else if(scoreProduct > best2ExpertProb){
@@ -825,13 +826,16 @@ public class ComPrediction extends Composite{
 				
 				best2ExpertProb = scoreProduct;
 				best2ExpertName = ComModel2.userAnswer.getUser(i);
+				
+				System.out.println("best2， 第" + (i+1) + "位专家："+ComModel2.userAnswer.getUser(i));
 			}
 			
 			else if(scoreProduct > best3ExpertProb){
 				best3ExpertProb = scoreProduct;
 				best3ExpertName = ComModel2.userAnswer.getUser(i);
+				
+				System.out.println("best3， 第" + (i+1) + "位专家："+ComModel2.userAnswer.getUser(i));
 			}	
-			u += 1;
 		}
 		
 		System.out.println("【推荐用户】总概率：" + sum);

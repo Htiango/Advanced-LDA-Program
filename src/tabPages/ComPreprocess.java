@@ -677,7 +677,9 @@ public class ComPreprocess extends Composite{
 		for(Map.Entry<Integer, Map<String,String>> entry : xmlReader.docMapMap.entrySet()){
 			for (int i = 0; i < CHILDREN3.length; i++){
 				temp = entry.getValue().get(CHILDREN3[i]);
-                    userSet.add(temp);                        
+				if(temp.length() != 0 ){
+					userSet.add(temp);      
+				}
 			}
 		}
 		uniqueUserNum = userSet.size();
@@ -694,19 +696,23 @@ public class ComPreprocess extends Composite{
 		repeat10Num = 0;
 		repeat100Num = 0;
 		String[] temp;
+		String answer;
 		
 		ArrayList<String> equalSet = new ArrayList<String>();
         ArrayList<String> list = new ArrayList<String>();
 		
 		for(Map.Entry<Integer, Map<String,String>> entry : segWords.segDocMapMap.entrySet()){
 			for (int i = 0; i < CHILDREN2.length; i++){
-				temp = entry.getValue().get(CHILDREN2[i]).split("\\s");
-				wordsNum += temp.length;
-				for(int k = 0; k < temp.length; k ++){
-					list.add(temp[k]);
-                    if(wordsSet.add(temp[k])==true){
-                    	equalSet.add(temp[k]);
-                    }                         
+				answer = entry.getValue().get(CHILDREN2[i]);
+				if(answer.length() != 0){
+					temp = answer.split("\\s");
+					wordsNum += temp.length;
+					for(int k = 0; k < temp.length; k ++){
+						list.add(temp[k]);
+	                    if(wordsSet.add(temp[k])==true){
+	                    	equalSet.add(temp[k]);
+	                    }                         
+					}
 				}
 			}
 		}

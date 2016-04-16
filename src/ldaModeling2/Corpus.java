@@ -153,6 +153,10 @@ public class Corpus {
 				
 				String userName = docMapMap.get(docIndex).get(CHILDREN2[i]);
 				
+				if(userName.length() != 0){
+					corpus.addUser(userName);
+				}
+				
 //				List<String> wordList = new LinkedList<String>();
 				
 //				if (segSentense != null){
@@ -163,7 +167,7 @@ public class Corpus {
 //					}
 //				}
 //				corpus.addDocument(wordList);
-				corpus.addUser(userName);
+				
 			}
 		}
 		
